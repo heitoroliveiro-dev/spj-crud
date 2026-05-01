@@ -10,4 +10,32 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
+model Processos {
+  id              Int           @id @default(autoincrement())
+  numeroProcesso  String        @unique @map("numero_processo")
+  dataAbertura    DateTime      @map("data_abertura")
+  descricao       String        
+  cliente         String        
+  advogado        String        
+  uf              String        @db.VarChar(2)
+  andamentos      Andamento[]   
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@map("processos")
+}Pro
+
+model Andamento {
+  id              Int           @id @default(autoincrement())
+  data            DateTime      
+  descricao       String        
+  processosId     Int           @map("processos_id")
+  processos       Processos     @relation(fields:[processosId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now()) @map("created_at)
+
+  @@map("andamentos")
+}
+
