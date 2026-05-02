@@ -1,0 +1,93 @@
+const processoRepository = require('../repositories/processoRepository')
+
+/* Padroniza o UF com letras maiúsculas */
+function normalizaUf(uf) {
+    return String(uf || '').trim().toUpperCase();
+}
+
+/* Se UF for MG, dentro do estado, se não, fora */
+function mensagemCriacaoPorUf(uf) {
+    return uf === 'MG'
+        ? 'Processo de MG criado com sucesso' 
+        : 'Processo fora de MG criado com sucesso';
+}
+
+/* 
+const UFS_VALIDAS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+];
+ */
+
+/* Percorre campos obrigatórios e retorna 400 */
+function validarCamposObrigatorios(payload) {
+  const campos = [
+    'numeroProcesso',
+    'dataAbertura',
+    'descricao',
+    'cliente',
+    'advogado',
+    'uf',
+  ];
+
+  for (const campo of campos) {
+    if (!payload[campo]) {
+      throw criarErro(`Campo obrigatório ausente: ${campo}`, 400);
+    }
+  }
+}
+
+const processoService = {
+
+    /* LISTAR  PROCESSOS*/
+    async listar() {
+        return processoRepository.findAll();
+    },
+
+    /* DETALHAR PROCESSO POR ID */
+    async buscarPorId(id) {
+        const processo = await processoRepository.findById(Number(id));
+
+        if(!processo) {
+            const error = new Error('');
+            error.status = 404;
+            throw error;
+        }
+
+        return processo;
+    },
+
+    /* CRIAR NOVO PROCESSO */
+    async novoProcesso(payload) {
+        const uf = normalizaUf(payload.uf);
+
+        const processo = await processoRepository.create({
+            ...payload,
+            uf,
+            dataAbertura: new Date(payload.dataAbertura)
+        });
+
+        return {
+            data: processo,
+            message: mensagemCriacaoPorUf(uf), /* após criar novoProcesso, mensagem aparece baseado no parametro uf definido em normalizaUf(payload.uf) */
+        };
+    },
+
+    /* ATUALIZAR PROCESSO */
+    async atualizarProcesso (id, payload) {
+        return processoRepository.update(Number(id),{
+            ...payload,
+            uf: normalizaUf(payload.uf),
+            dataAbertura: new Date(payload.dataAbertura),
+        });
+    },
+
+    /* REMOVER PROCESSO */
+    async removerProcesso (id) {
+        await this.buscarPorId(id);
+        return processoRepository.delete(Number(id));
+    },
+};
+
+module.exports = processoService;
