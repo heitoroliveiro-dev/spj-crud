@@ -21,11 +21,100 @@ Antes de iniciar, tenha instalado:
 | Banco de dados | PostgreSQL |
 | Ambiente local | Docker Compose |
 
-## 1. Subir o banco de dados
+## Como rodar com Docker
+
+Este e o fluxo recomendado para o teste tecnico. O Docker Compose sobe o PostgreSQL e o backend juntos.
+
+Na raiz do repositório, execute:
+
+```bash
+docker compose up --build
+```
+
+O Compose vai:
+
+- criar o container `spj_db` com PostgreSQL;
+- criar o container `spj_backend` com Node.js;
+- aguardar o banco ficar pronto;
+- executar `npx prisma generate`;
+- aplicar as migrations com `npx prisma migrate deploy`;
+- iniciar a API com `npm start`.
+
+A API ficara disponivel em:
+
+```text
+http://localhost:3001
+```
+
+Teste se o backend esta respondendo:
+
+```bash
+curl http://localhost:3001/health
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Para parar os containers:
+
+```bash
+docker compose down
+```
+
+Para parar os containers e apagar o volume do banco local:
+
+```bash
+docker compose down -v
+```
+
+Use `-v` apenas quando quiser recriar o banco do zero.
+
+Se a porta `3001` ja estiver em uso, pare o processo local que estiver rodando nela e execute novamente:
+
+```bash
+docker compose up --build
+```
+
+## Como o Docker esta configurado
 
 O PostgreSQL e configurado pelo arquivo `docker-compose.yml` que fica na raiz do projeto.
 
-Na raiz do repositório, execute:
+Serviço do banco:
+
+```text
+container: spj_db
+host interno no Docker: db
+porta externa: 5432
+banco: spj_db
+usuario: postgres
+senha: postgres
+```
+
+Serviço do backend:
+
+```text
+arquivo: backend/Dockerfile
+container: spj_backend
+porta externa: 3001
+porta interna: 3001
+```
+
+Dentro do Docker, o backend nao usa `localhost` para acessar o banco. Ele usa o nome do serviço do Compose:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@db:5432/spj_db?schema=public"
+```
+
+Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do container PostgreSQL.
+
+## Rodar somente o banco
+
+Se quiser rodar o backend fora do Docker durante o desenvolvimento, suba apenas o banco:
 
 ```bash
 docker compose up -d db
@@ -51,7 +140,11 @@ POSTGRES_PASSWORD=postgres
 POSTGRES_DB=spj_db
 ```
 
-## 2. Entrar na pasta do backend
+## Rodar o backend fora do Docker
+
+Use este fluxo se quiser desenvolver localmente com `nodemon`.
+
+### 1. Entrar na pasta do backend
 
 Ainda a partir da raiz do projeto, acesse:
 
@@ -59,7 +152,7 @@ Ainda a partir da raiz do projeto, acesse:
 cd backend
 ```
 
-## 3. Instalar dependencias
+### 2. Instalar dependencias
 
 Execute:
 
@@ -67,7 +160,7 @@ Execute:
 npm install
 ```
 
-## 4. Configurar variaveis de ambiente
+### 3. Configurar variaveis de ambiente
 
 Crie ou confira o arquivo `.env` dentro da pasta `backend`.
 
@@ -89,7 +182,7 @@ Descricao das variaveis:
 | `NODE_ENV` | Ambiente de execucao |
 | `FRONTEND_URL` | Origem liberada no CORS para o frontend |
 
-## 5. Aplicar migrations do Prisma
+### 4. Aplicar migrations do Prisma
 
 Com o banco rodando e o `.env` configurado, execute dentro de `backend`:
 
@@ -105,7 +198,7 @@ Se precisar gerar novamente o Prisma Client, execute:
 npx prisma generate
 ```
 
-## 6. Rodar o backend em desenvolvimento
+### 5. Rodar o backend em desenvolvimento
 
 Dentro de `backend`, execute:
 
@@ -121,7 +214,7 @@ Por padrao, a API ficara disponivel em:
 http://localhost:3001
 ```
 
-## 7. Testar se a API esta no ar
+### 6. Testar se a API esta no ar
 
 Com o backend rodando, acesse no navegador ou use `curl`:
 
@@ -143,7 +236,7 @@ Tambem e possivel testar a rota principal de processos:
 curl http://localhost:3001/api/processos
 ```
 
-## 8. Rodar em modo producao/local simples
+### 7. Rodar em modo producao/local simples
 
 Para iniciar sem `nodemon`, execute:
 
@@ -163,6 +256,9 @@ node server.js
 | --- | --- | --- |
 | `docker compose up -d db` | Raiz do projeto | Sobe o PostgreSQL |
 | `docker compose ps` | Raiz do projeto | Lista containers ativos |
+| `docker compose up --build` | Raiz do projeto | Sobe banco e backend com Docker |
+| `docker compose down` | Raiz do projeto | Para os containers |
+| `docker compose down -v` | Raiz do projeto | Para containers e apaga o volume do banco |
 | `npm install` | `backend` | Instala dependencias |
 | `npx prisma migrate dev` | `backend` | Aplica migrations no banco local |
 | `npx prisma generate` | `backend` | Gera o Prisma Client |
@@ -189,7 +285,13 @@ node server.js
 
 ## Fluxo completo resumido
 
-Executando a partir da raiz do projeto:
+Com Docker, executando a partir da raiz do projeto:
+
+```bash
+docker compose up --build
+```
+
+Sem Docker para o backend, executando a partir da raiz do projeto:
 
 ```bash
 docker compose up -d db
