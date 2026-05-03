@@ -32,7 +32,7 @@ function validarCamposObrigatorios(payload) {
     
     for (const campo of campos) {
         if (!payload[campo]) {
-            throw criarErro(`Campo obrigatório ausente: ${campo}`, 400);
+            throw reportaErro(`Campo obrigatório ausente: ${campo}`, 400);
         }
     }
 }
@@ -57,6 +57,8 @@ const processoService = {
     
     /* CRIAR NOVO PROCESSO */
     async novoProcesso(payload) {
+        validarCamposObrigatorios(payload);
+
         const uf = normalizaUf(payload.uf);
         
         const processo = await processoRepository.create({
@@ -79,11 +81,14 @@ const processoService = {
             throw reportaErro('Processo não encontrado', 404)
         }
 
+        validarCamposObrigatorios(payload);
+
+        const uf = normalizaUf(payload.uf);
+
         return processoRepository.update(Number(id),{
             ...payload,
-            uf: normalizaUf(payload.uf),
+            uf,
             dataAbertura: new Date(payload.dataAbertura),
-            message: mensagemCriacaoPorUf(uf),
         });
     },
     
