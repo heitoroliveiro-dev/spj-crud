@@ -63,7 +63,7 @@ deleteProcesso: (processoId) => request(`/api/processos/${processoId}`,{
  *******************************/
 
 /* andamentos por processo | GET ******/
-getAndamentosByProcessos: (processoId) => request(`/api/processos/${processoId}/andamentos`,{
+getAndamentosByProcesso: (processoId) => request(`/api/processos/${processoId}/andamentos`,{
     method: 'GET'
 }),
 
