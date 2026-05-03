@@ -8,7 +8,7 @@ function toDateInput(value) {
   return String(value).slice(0, 10);
 }
 
-export function ProcessoForm({ initialData, onSubmit, onCancel, isSubmitting = false }) {
+export function ProcessoForm({ initialData, onSubmit, onCancel, isSubmitting = false, fieldErrors = {} }) {
   const {
     register,
     handleSubmit,
@@ -27,13 +27,15 @@ export function ProcessoForm({ initialData, onSubmit, onCancel, isSubmitting = f
     });
   }, [initialData, reset]);
 
+  const numeroProcessoError = errors.numeroProcesso?.message || fieldErrors.numeroProcesso;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="form-grid">
         <label className="form-field">
           Número do Processo
           <input {...register('numeroProcesso', { required: 'Informe o número do processo' })} />
-          {errors.numeroProcesso && <span className="text-sm text-red-600">{errors.numeroProcesso.message}</span>}
+          {numeroProcessoError && <span className="text-sm text-red-600">{numeroProcessoError}</span>}
         </label>
 
         <label className="form-field">

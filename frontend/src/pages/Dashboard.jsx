@@ -17,11 +17,13 @@ export function Dashboard() {
     const [deleteProcessoId, setDeleteProcessoId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [feedback, setFeedback] = useState('');
+    const [processoFieldErrors, setProcessoFieldErrors] = useState({});
 
     /* abre modal pra criação */
     function abrirCriacao() {
       setFeedback('');
       setError('');
+      setProcessoFieldErrors({});
       setEditingProcesso(null);
       setModalOpen(true);
     }
@@ -30,12 +32,14 @@ export function Dashboard() {
     function abrirEdicao(processo) {
       setFeedback('');
       setError('');
+      setProcessoFieldErrors({});
       setEditingProcesso(processo);
       setModalOpen(true);
     }
 
     async function salvarProcesso(payload) {
       setSubmitting(true);
+      setProcessoFieldErrors({});
 
       try {
         if (editingProcesso) {
@@ -49,6 +53,13 @@ export function Dashboard() {
         setModalOpen(false);
         await recarregarProcessos();
       } catch (err) {
+        if (err.status === 409) {
+          setProcessoFieldErrors({
+            numeroProcesso: err.message,
+          });
+          return;
+        }
+
         setError(err.message || 'Erro ao salvar o processo.');
       } finally {
         setSubmitting(false);
@@ -183,6 +194,7 @@ return (
           onSubmit={salvarProcesso}
           onCancel={() => setModalOpen(false)}
           isSubmitting={submitting}
+          fieldErrors={processoFieldErrors}
         />
       </Modal>
 

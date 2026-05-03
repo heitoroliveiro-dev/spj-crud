@@ -13,6 +13,10 @@ function mensagemCriacaoPorUf(uf) {
         : 'Processo fora de MG criado com sucesso';
 }
 
+function mensagemProcessoDuplicado() {
+    return 'Este processo já está cadastrado. Utilize a barra de pesquisa ou tente cadastrar outro processo';
+}
+
 function reportaErro(message, status) {
     const error = new Error(message);
     error.status = status;
@@ -60,6 +64,11 @@ const processoService = {
         validarCamposObrigatorios(payload);
 
         const uf = normalizaUf(payload.uf);
+        const processoExistente = await processoRepository.findByNumeroProcesso(payload.numeroProcesso);
+
+        if (processoExistente) {
+            throw reportaErro(mensagemProcessoDuplicado(), 409);
+        }
         
         const processo = await processoRepository.create({
             ...payload,
@@ -84,6 +93,11 @@ const processoService = {
         validarCamposObrigatorios(payload);
 
         const uf = normalizaUf(payload.uf);
+        const processoComMesmoNumero = await processoRepository.findByNumeroProcesso(payload.numeroProcesso);
+
+        if (processoComMesmoNumero && processoComMesmoNumero.id !== Number(id)) {
+            throw reportaErro(mensagemProcessoDuplicado(), 409);
+        }
 
         return processoRepository.update(Number(id),{
             ...payload,

@@ -33,6 +33,13 @@ const processoRepository = {
         });
     },
 
+    /* Buscar por número do processo */
+    findByNumeroProcesso(numeroProcesso) {
+        return prisma.processos.findUnique({
+            where: { numeroProcesso },
+        });
+    },
+
     /* Criar novo */
     create(data) {
         return prisma.processos.create({ data });

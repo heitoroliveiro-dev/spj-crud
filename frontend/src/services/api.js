@@ -13,7 +13,10 @@ const request = async (endpoint, options = {}) => {
     const data = await response.json().catch(() => ({}));
 
     if(!response.ok) {
-        throw new Error(data.message || data.error || 'Erro na requisição');
+        const error = new Error(data.message || data.error || 'Erro na requisição');
+        error.status = response.status;
+        error.data = data;
+        throw error;
     }
 
     return data;
