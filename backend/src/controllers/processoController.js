@@ -7,8 +7,8 @@
  */
 
 const processoService = require('../services/processoService');
-const processoController = {
 
+const processoController = {
     /* GET    /api/processos        */
     async index(req, res, next){
         try {
@@ -23,9 +23,7 @@ const processoController = {
     async show(req, res, next){
         try{
             const {id} = req.params;
-
             const processo = await processoService.buscarPorId(id);
-
             return res.status(200).json(processo);
         } catch (error){
             return next(error);

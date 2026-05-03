@@ -1,6 +1,9 @@
 // backend/src/routes/processoRoutes.js
 const router = require('express').Router();
 const processoController = require('../controllers/processoController');
+const andamentoController = require('../controllers/andamentoController');
+
+router.post('/:processoId/andamentos', andamentoController.store);
 
 router.get('/', processoController.index);
 router.get('/:id', processoController.show);
