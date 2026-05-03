@@ -7,7 +7,7 @@ Devido ao contexto de prazo curto e entregas rápidas e escaláveis, o desenvolv
 
 Verifique o repositório público as branches, issues e sub-issues pelo link 
 
-![descrição do painel](projects.png)
+![descrição do painel](/docs/assets/img/projects.png)
 
 ## Stack 
 
