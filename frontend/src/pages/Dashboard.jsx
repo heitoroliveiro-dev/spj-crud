@@ -5,6 +5,7 @@ import { ProcessoCard } from '../components/ProcessoCard';
 import { Modal } from '../components/Modal';
 import { ProcessoForm } from '../components/ProcessoForm';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Toast } from '../components/Toast';
 
 export function Dashboard() {
     const [processos, setProcessos] = useState([]);
@@ -152,12 +153,6 @@ return (
           </div>
         )}
 
-        {feedback && !error && (
-          <div className="mb-6 rounded-md border border-success/20 bg-success/10 p-4 text-success">
-            <p>{feedback}</p>
-          </div>
-        )}
-
         {!loading && !error && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {filteredProcessos.map((processo) => (
@@ -200,6 +195,8 @@ return (
         onConfirm={confirmarExclusao}
         isSubmitting={submitting}
       />
+
+      <Toast message={feedback} onClose={() => setFeedback('')} />
       </div>
 );
 }

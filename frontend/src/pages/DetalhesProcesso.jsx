@@ -6,6 +6,7 @@ import { formatDate } from '../utils/formatters';
 import { AndamentoForm } from '../components/AndamentoForm';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Modal } from '../components/Modal';
+import { Toast } from '../components/Toast';
 
 async function buscarDetalhesProcesso(processoId) {
   const [processoData, andamentosData] = await Promise.all([
@@ -29,6 +30,7 @@ export function DetalhesProcesso() {
   const [editingAndamento, setEditingAndamento] = useState(null);
   const [deleteAndamentoId, setDeleteAndamentoId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState('');
 
   async function carregarDetalhes() {
     setLoading(true);
@@ -75,11 +77,15 @@ export function DetalhesProcesso() {
   }, [id]);
 
   function abrirNovoAndamento() {
+    setFeedback('');
+    setError('');
     setEditingAndamento(null);
     setAndamentoModalOpen(true);
   }
 
   function abrirEdicaoAndamento(andamento) {
+    setFeedback('');
+    setError('');
     setEditingAndamento(andamento);
     setAndamentoModalOpen(true);
   }
@@ -90,12 +96,16 @@ export function DetalhesProcesso() {
     try {
       if (editingAndamento) {
         await api.updateAndamento(editingAndamento.id, payload);
+        setFeedback('Andamento atualizado com sucesso.');
       } else {
         await api.createAndamento(id, payload);
+        setFeedback('Andamento criado com sucesso.');
       }
 
       setAndamentoModalOpen(false);
       await carregarDetalhes();
+    } catch (err) {
+      setError(err.message || 'Erro ao salvar o andamento.');
     } finally {
       setSubmitting(false);
     }
@@ -107,7 +117,10 @@ export function DetalhesProcesso() {
     try {
       await api.deleteAndamento(deleteAndamentoId);
       setDeleteAndamentoId(null);
+      setFeedback('Andamento excluído com sucesso.');
       await carregarDetalhes();
+    } catch (err) {
+      setError(err.message || 'Erro ao excluir o andamento.');
     } finally {
       setSubmitting(false);
     }
@@ -256,6 +269,8 @@ export function DetalhesProcesso() {
         onConfirm={confirmarExclusaoAndamento}
         isSubmitting={submitting}
       />
+
+      <Toast message={feedback} onClose={() => setFeedback('')} />
     </div>
   );
 }
