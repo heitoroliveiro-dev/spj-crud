@@ -80,7 +80,7 @@ Se a porta `3001` ja estiver em uso, pare o processo local que estiver rodando n
 docker compose up --build
 ```
 
-## Como o Docker esta configurado
+## Como o backend está configurado no Docker
 
 O PostgreSQL e configurado pelo arquivo `docker-compose.yml` que fica na raiz do projeto.
 
@@ -127,7 +127,7 @@ Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do con
 | `npm run dev` | `backend` | Inicia a API em desenvolvimento |
 | `npm start` | `backend` | Inicia a API com Node |
 
-## Rotas disponiveis
+## Contrato de API
 
 ### Health check
 
@@ -148,7 +148,9 @@ Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do con
 ### Andamentos
 | Metodo | Rota | Descricao |
 | --- | --- | --- |
+| GET | `/api/processos/:id/andamentos` | Lista andamentos do processo |
 | POST | `/api/processos/:id/andamentos` | Cria um andamento |
+| GET | `/api/andamentos/:id/` | Busca andamento por id unico | 
 | PUT | `/api/andamentos/:id` | Atualiza um andamento |
 | DELETE | `/api/andamentos/:id` | Remove um andamento |
 
@@ -184,13 +186,20 @@ Abra a URL exibida no terminal e confira as tabelas `processos` e `andamentos`.
 ![deletar processo](../docs/assets/img/08-deletarProcesso.png)
 ---
 ### **Novo Andamento**: `POST: {{base_url}}/api/processos/{{processo_id}}/andamentos`
-![criar processo](../docs/assets/img/06-criarAndamento.png)
+![novo andamento](../docs/assets/img/06-criarAndamento.png)
+---
+### **Busca Andamento por Processo**: `GET: {{base_url}}/api/processos/{{processo_id}}/andamentos`
+![busca andamento por processo](../docs/assets/img/10-buscaAndamentoPorProcesso.png)
+---
+### **Buscar Andamento por ID unico**: `GET: {{base_url}}/api/andamentos/{{andamento_id}}`
+![deleta andamento](../docs/assets/img/09-deletarAndamento.png)
 ---
 ### **Atualizar Andamento**: `PUT: {{base_url}}/api/andamentos/{{andamento_id}}`
-![criar processo](../docs/assets/img/07-atualizarAndamento.png)
+![atualiza andamento](../docs/assets/img/07-atualizarAndamento.png)
 ---
 ### **Deletar Andamento**: `DELETE: {{base_url}}/api/andamentos/{{andamento_id}}`
-![criar processo](../docs/assets/img/09-deletarAndamento.png)
+![deleta andamento](../docs/assets/img/09-deletarAndamento.png)
 ---
+
 
 
