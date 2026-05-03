@@ -112,144 +112,6 @@ DATABASE_URL="postgresql://postgres:postgres@db:5432/spj_db?schema=public"
 
 Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do container PostgreSQL.
 
-## Rodar somente o banco
-
-Se quiser rodar o backend fora do Docker durante o desenvolvimento, suba apenas o banco:
-
-```bash
-docker compose up -d db
-```
-
-Confira se o container esta rodando:
-
-```bash
-docker compose ps
-```
-
-O banco local ficara disponivel em:
-
-```text
-localhost:5432
-```
-
-Dados do banco local:
-
-```text
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=spj_db
-```
-
-## Rodar o backend fora do Docker
-
-Use este fluxo se quiser desenvolver localmente com `nodemon`.
-
-### 1. Entrar na pasta do backend
-
-Ainda a partir da raiz do projeto, acesse:
-
-```bash
-cd backend
-```
-
-### 2. Instalar dependencias
-
-Execute:
-
-```bash
-npm install
-```
-
-### 3. Configurar variaveis de ambiente
-
-Crie ou confira o arquivo `.env` dentro da pasta `backend`.
-
-Exemplo:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/spj_db?schema=public"
-PORT=3001
-NODE_ENV=development
-FRONTEND_URL="http://localhost:5173"
-```
-
-Descricao das variaveis:
-
-| Variavel | Descricao |
-| --- | --- |
-| `DATABASE_URL` | URL de conexao com o PostgreSQL usado pelo Prisma |
-| `PORT` | Porta em que a API sera iniciada |
-| `NODE_ENV` | Ambiente de execucao |
-| `FRONTEND_URL` | Origem liberada no CORS para o frontend |
-
-### 4. Aplicar migrations do Prisma
-
-Com o banco rodando e o `.env` configurado, execute dentro de `backend`:
-
-```bash
-npx prisma migrate dev
-```
-
-Esse comando aplica as migrations existentes em `prisma/migrations` e deixa o banco sincronizado com o schema.
-
-Se precisar gerar novamente o Prisma Client, execute:
-
-```bash
-npx prisma generate
-```
-
-### 5. Rodar o backend em desenvolvimento
-
-Dentro de `backend`, execute:
-
-```bash
-npm run dev
-```
-
-O servidor sera iniciado com `nodemon`.
-
-Por padrao, a API ficara disponivel em:
-
-```text
-http://localhost:3001
-```
-
-### 6. Testar se a API esta no ar
-
-Com o backend rodando, acesse no navegador ou use `curl`:
-
-```bash
-curl http://localhost:3001/health
-```
-
-Resposta esperada:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-Tambem e possivel testar a rota principal de processos:
-
-```bash
-curl http://localhost:3001/api/processos
-```
-
-### 7. Rodar em modo producao/local simples
-
-Para iniciar sem `nodemon`, execute:
-
-```bash
-npm start
-```
-
-Esse comando roda:
-
-```bash
-node server.js
-```
-
 ## Comandos uteis
 
 | Comando | Onde executar | Finalidade |
@@ -283,26 +145,52 @@ node server.js
 | PUT | `/api/processos/:id` | Atualiza um processo |
 | DELETE | `/api/processos/:id` | Remove um processo |
 
-## Fluxo completo resumido
+### Andamentos
+| Metodo | Rota | Descricao |
+| --- | --- | --- |
+| POST | `/api/processos/:id/andamentos` | Cria um andamento |
+| PUT | `/api/andamentos/:id` | Atualiza um andamento |
+| DELETE | `/api/andamentos/:id` | Remove um andamento |
 
-Com Docker, executando a partir da raiz do projeto:
+## Ver no Prisma Studio
+
+Com o banco e backend funcionando:
 
 ```bash
-docker compose up --build
-```
-
-Sem Docker para o backend, executando a partir da raiz do projeto:
-
-```bash
-docker compose up -d db
 cd backend
-npm install
-npx prisma migrate dev
-npm run dev
+npx prisma studio
 ```
 
-Depois disso, teste:
+Abra a URL exibida no terminal e confira as tabelas `processos` e `andamentos`.
 
-```bash
-curl http://localhost:3001/health
-```
+## Testes de API
+### **Health check**: `GET: {{base_url}}/health`
+
+![health](../docs/assets/img/01-health.png)
+---
+### **Novo Processo**: `POST: {{base_url}}/api/processos`
+![criar processo](../docs/assets/img/02-criarProcesso.png)
+---
+### **Listar Processos**: `GET: {{base_url}}/api/processos`
+![listar processo](../docs/assets/img/03-listarProcesso.png)
+---
+### **Buscar Processos**: `GET: {{base_url}}/api/processos/{{processo_id}}`
+![buscar processo](../docs/assets/img/04-buscarProcesso.png)
+---
+### **Atualizar Processos**: `PUT: {{base_url}}/api/processos/{{processo_id}}`
+![atualizar processo](../docs/assets/img/05-atualizarProcesso.png)
+---
+### **Deletar Processos**: `DELETE: {{base_url}}/api/processos/{{processo_id}}`
+![deletar processo](../docs/assets/img/08-deletarProcesso.png)
+---
+### **Novo Andamento**: `POST: {{base_url}}/api/processos/{{processo_id}}/andamentos`
+![criar processo](../docs/assets/img/06-criarAndamento.png)
+---
+### **Atualizar Andamento**: `PUT: {{base_url}}/api/andamentos/{{andamento_id}}`
+![criar processo](../docs/assets/img/07-atualizarAndamento.png)
+---
+### **Deletar Andamento**: `DELETE: {{base_url}}/api/andamentos/{{andamento_id}}`
+![criar processo](../docs/assets/img/09-deletarAndamento.png)
+---
+
+

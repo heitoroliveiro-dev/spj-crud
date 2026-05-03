@@ -1,4 +1,5 @@
-const processoRepository = require('../repositories/processoRepository')
+const { report } = require('node:process');
+const processoRepository = require('../repositories/processoRepository');
 
 /* Padroniza o UF com letras maiúsculas */
 function normalizaUf(uf) {
@@ -12,77 +13,80 @@ function mensagemCriacaoPorUf(uf) {
         : 'Processo fora de MG criado com sucesso';
 }
 
-/* 
-const UFS_VALIDAS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
-  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
-  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
- */
+function reportaErro(message, status) {
+    const error = new Error(message);
+    error.status = status;
+    throw error;
+}
 
 /* Percorre campos obrigatórios e retorna 400 */
 function validarCamposObrigatorios(payload) {
-  const campos = [
-    'numeroProcesso',
-    'dataAbertura',
-    'descricao',
-    'cliente',
-    'advogado',
-    'uf',
-  ];
-
-  for (const campo of campos) {
-    if (!payload[campo]) {
-      throw criarErro(`Campo obrigatório ausente: ${campo}`, 400);
+    const campos = [
+        'numeroProcesso',
+        'dataAbertura',
+        'descricao',
+        'cliente',
+        'advogado',
+        'uf',
+    ];
+    
+    for (const campo of campos) {
+        if (!payload[campo]) {
+            throw criarErro(`Campo obrigatório ausente: ${campo}`, 400);
+        }
     }
-  }
 }
 
 const processoService = {
-
+    
     /* LISTAR  PROCESSOS*/
     async listar() {
         return processoRepository.findAll();
     },
-
+    
     /* DETALHAR PROCESSO POR ID */
     async buscarPorId(id) {
         const processo = await processoRepository.findById(Number(id));
-
+        
         if(!processo) {
-            const error = new Error('');
-            error.status = 404;
-            throw error;
+            throw reportaErro('Processo não encontrado', 404)
         }
-
+        
         return processo;
     },
-
+    
     /* CRIAR NOVO PROCESSO */
     async novoProcesso(payload) {
         const uf = normalizaUf(payload.uf);
-
+        
         const processo = await processoRepository.create({
             ...payload,
             uf,
             dataAbertura: new Date(payload.dataAbertura)
         });
-
+        
         return {
             data: processo,
             message: mensagemCriacaoPorUf(uf), /* após criar novoProcesso, mensagem aparece baseado no parametro uf definido em normalizaUf(payload.uf) */
         };
     },
-
+    
     /* ATUALIZAR PROCESSO */
     async atualizarProcesso (id, payload) {
+        const processo = await processoRepository.findById(Number(id));
+
+        if(!processo){
+            throw reportaErro('Processo não encontrado', 404)
+        }
+
         return processoRepository.update(Number(id),{
             ...payload,
             uf: normalizaUf(payload.uf),
             dataAbertura: new Date(payload.dataAbertura),
+            message: mensagemCriacaoPorUf(uf),
         });
     },
-
+    
     /* REMOVER PROCESSO */
     async removerProcesso (id) {
         await this.buscarPorId(id);
@@ -91,3 +95,9 @@ const processoService = {
 };
 
 module.exports = processoService;
+
+/* 
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+ */
