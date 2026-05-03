@@ -1,11 +1,11 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE;
+const API_BASE_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
 /* função que empacota a API e valida se existe resposta ou não */
 const request = async (endpoint, options = {}) => {
     const response = await fetch (`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
-            ...(options.headers || {})
+            ...(options.headers || {}),
         },
     });
 
