@@ -19,7 +19,7 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onCancel}
-                        disable={isSubmitting}
+                        disabled={isSubmitting}
                         className="button-secondary"
                     >
                         {cancelLabel}
@@ -27,7 +27,7 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onConfirm}
-                        disable={isSubmitting}
+                        disabled={isSubmitting}
                         className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
                     >
                         {isSubmitting ? 'Aguarde...' : confirmLabel}    

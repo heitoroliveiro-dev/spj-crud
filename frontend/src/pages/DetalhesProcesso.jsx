@@ -3,48 +3,116 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Briefcase, Calendar, FileText, MapPin, Plus, Trash2, Pencil, User } from 'lucide-react';
 import { api } from '../services/api';
 import { formatDate } from '../utils/formatters';
+import { AndamentoForm } from '../components/AndamentoForm';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Modal } from '../components/Modal';
+
+async function buscarDetalhesProcesso(processoId) {
+  const [processoData, andamentosData] = await Promise.all([
+    api.getProcessoById(processoId),
+    api.getAndamentosByProcesso(processoId),
+  ]);
+
+  return { processoData, andamentosData };
+}
 
 export function DetalhesProcesso() {
   const { id } = useParams();
   const navigate = useNavigate();
   
+
   const [processo, setProcesso] = useState(null);
   const [andamentos, setAndamentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [andamentoModalOpen, setAndamentoModalOpen] = useState(false);
+  const [editingAndamento, setEditingAndamento] = useState(null);
+  const [deleteAndamentoId, setDeleteAndamentoId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function carregarDetalhes() {
+    setLoading(true);
+    setError('');
+
+    try {
+      const { processoData, andamentosData } = await buscarDetalhesProcesso(id);
+
+      setProcesso(processoData);
+      setAndamentos(andamentosData);
+    } catch (err) {
+      setError(err.message || 'Erro ao carregar os detalhes do processo.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchDetalhes() {
-      try {
-        const processoPromise = api.getProcessoById(id);
-        const andamentosPromise = api.getAndamentosByProcesso(id);
-        const [processoData, andamentosData] = await Promise.all([
-          processoPromise,
-          andamentosPromise
-        ]);
+    if (!id) return;
+
+    let isActive = true;
+
+    buscarDetalhesProcesso(id)
+      .then(({ processoData, andamentosData }) => {
+        if (!isActive) return;
 
         setProcesso(processoData);
         setAndamentos(andamentosData);
-      } catch (err) {
-        setError(err.message || 'Erro ao carregar os detalhes do processo.');
-      } finally {
-        setLoading(false);
-      }
-    }
+      })
+      .catch((err) => {
+        if (!isActive) return;
 
-    if (id) {
-      fetchDetalhes();
-    }
+        setError(err.message || 'Erro ao carregar os detalhes do processo.');
+      })
+      .finally(() => {
+        if (!isActive) return;
+
+        setLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [id]);
 
-/*   async function recarregarAndamentos() {
+  function abrirNovoAndamento() {
+    setEditingAndamento(null);
+    setAndamentoModalOpen(true);
+  }
+
+  function abrirEdicaoAndamento(andamento) {
+    setEditingAndamento(andamento);
+    setAndamentoModalOpen(true);
+  }
+
+  async function salvarAndamento(payload) {
+    setSubmitting(true);
+
     try {
-      const andamentosData = await api.getAndamentosByProcesso(id);
-      setAndamentos(andamentosData);
-    } catch (err) {
-      console.error('Erro ao recarregar andamentos', err);
+      if (editingAndamento) {
+        await api.updateAndamento(editingAndamento.id, payload);
+      } else {
+        await api.createAndamento(id, payload);
+      }
+
+      setAndamentoModalOpen(false);
+      await carregarDetalhes();
+    } finally {
+      setSubmitting(false);
     }
-  } */
+  }
+
+  async function confirmarExclusaoAndamento() {
+    setSubmitting(true);
+
+    try {
+      await api.deleteAndamento(deleteAndamentoId);
+      setDeleteAndamentoId(null);
+      await carregarDetalhes();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
 
   if (loading) {
     return (
@@ -103,7 +171,11 @@ export function DetalhesProcesso() {
         <section className="section-card rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="page-header mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-bold text-primary">Andamentos do Processo</h2>
-            <button className="button-primary mt-4 flex items-center gap-2 sm:mt-0">
+            <button
+              type="button"
+              onClick={abrirNovoAndamento}
+              className="button-primary mt-4 flex items-center gap-2 sm:mt-0"
+            >
               <Plus size={18} /> Novo Andamento
             </button>
           </div>
@@ -126,10 +198,20 @@ export function DetalhesProcesso() {
                     <td className="p-4 text-gray-700">{andamento.descricao}</td>
                     <td className="p-4">
                       <div className="action-row flex justify-end gap-3">
-                        <button className="text-muted-foreground hover:text-accent transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => abrirEdicaoAndamento(andamento)}
+                          className="text-muted-foreground hover:text-accent transition-colors"
+                          aria-label="Editar andamento"
+                        >
                           <Pencil size={18} />
                         </button>
-                        <button className="text-muted-foreground hover:text-destructive transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => setDeleteAndamentoId(andamento.id)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          aria-label="Excluir andamento"
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -151,6 +233,29 @@ export function DetalhesProcesso() {
           </div>
         </section>
       </main>
+
+      <Modal
+        isOpen={andamentoModalOpen}
+        title={editingAndamento ? 'Editar Andamento' : 'Novo Andamento'}
+        onClose={() => setAndamentoModalOpen(false)}
+      >
+        <AndamentoForm
+          initialData={editingAndamento}
+          onSubmit={salvarAndamento}
+          onCancel={() => setAndamentoModalOpen(false)}
+          isSubmitting={submitting}
+        />
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={Boolean(deleteAndamentoId)}
+        title="Excluir andamento"
+        message="Tem certeza que deseja excluir este andamento?"
+        confirmLabel="Excluir"
+        onCancel={() => setDeleteAndamentoId(null)}
+        onConfirm={confirmarExclusaoAndamento}
+        isSubmitting={submitting}
+      />
     </div>
   );
 }
