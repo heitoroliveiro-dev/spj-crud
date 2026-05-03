@@ -3,6 +3,7 @@ const router = require('express').Router();
 const processoController = require('../controllers/processoController');
 const andamentoController = require('../controllers/andamentoController');
 
+router.get('/:processoId/andamentos',andamentoController.index)
 router.post('/:processoId/andamentos', andamentoController.store);
 
 router.get('/', processoController.index);

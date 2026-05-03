@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const andamentoController = require('../controllers/andamentoController');
 
+router.get('/:id',andamentoController.show);
 router.put('/:id', andamentoController.update);
 router.delete('/:id', andamentoController.destroy);
 

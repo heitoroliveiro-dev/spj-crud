@@ -9,6 +9,27 @@
 const andamentoService = require('../services/andamentoService');
 
 const andamentoController = {
+
+    async index(req, res, next){
+        try {
+            const { processoId } = req.params;
+            const resultado = await andamentoService.buscaAndamentoPorProcesso(processoId);
+            return res.status(200).json(resultado);
+        } catch (error){
+            return next(error)
+        }
+    },
+
+    async show(req,res,next){
+        try {
+            const { id } = req.params;
+            const resultado = await andamentoService.buscarAndamentoPorId(id);
+            return res.status(200).json(resultado);
+        } catch(error){
+            return next(error)
+        }
+    },
+
     async store(req, res, next) {
         try {
             const { processoId } = req.params;

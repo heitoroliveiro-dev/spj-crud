@@ -38,6 +38,33 @@ function validarData(data) {
 }
 
 const andamentoService = {
+
+    /* buscar andamento por andamentoId */
+    async buscarAndamentoPorId(andamentoId){
+        const andamentoIdValidado = validarId(andamentoId, 'ID do andamento')
+
+        const andamento = await andamentoRepository.findById(andamentoIdValidado);
+
+        if(!andamento) {
+            throw reportaErro('Andamento não encontrado', 404)
+        }
+
+        return andamento;
+    },
+
+    /* buscar andamento por processoId */
+    async buscaAndamentoPorProcesso(processoId) {
+        const processosId = validarId(processoId, 'ID do processo');
+        
+        const processo = await processoRepository.findById(processosId);
+
+        if(!processo) {
+            throw reportaErro('Processo não encontrado', 404)
+        }
+        
+        return andamentoRepository.findByProcessoId(processosId);
+    },
+
     /* Criar */
     async criar(processoId, payload) {
         const processosId = validarId(processoId, 'ID do processo');

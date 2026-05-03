@@ -41,23 +41,4 @@ Verifique o repositório público as branches, issues e sub-issues pelo link
 | 03 - Documentação de Engenharia | O repositório deve conter um `README.md` abrangente, detalhando os passos para execução, variáveis de ambiente, dependências e arquitetura |
 | 04 - Desempenho e Usabilidade | A validação primária deve ocorrer no frontend para reduzir requisições desnecessárias ao servidor e fornecer feedback imediato ao usuário |
 
-## Contrato de API
-
-#### **Processos**:
-
-| Metodo | Rota | Acao |
-| --- | --- | --- |
-| GET | `/api/processos` | Listar processos |
-| GET | `/api/processos/:id` | Detalhar processo com andamentos |
-| POST | `/api/processos` | Criar processo |
-| PUT | `/api/processos/:id` | Editar processo |
-| DELETE | `/api/processos/:id` | Excluir processo |
-
-#### **Andamentos**:
-
-| Metodo | Rota | Acao |
-| --- | --- | --- |
-| POST | `/api/processos/:processoId/andamentos` | Criar andamento |
-| PUT | `/api/andamentos/:id` | Editar andamento |
-| DELETE | `/api/andamentos/:id` | Excluir andamento |
 
