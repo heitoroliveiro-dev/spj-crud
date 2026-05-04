@@ -65,9 +65,16 @@ Para rodar o projeto com Docker, é necessário ter instalado:
 
 Não é necessário instalar Node.js localmente para executar pelo Docker Compose.
 
-## Como rodar com um comando
+## Como rodar o projeto
 
-Na raiz do projeto `spj`, execute:
+Clone o repositório e entre na pasta do projeto:
+
+```bash
+git clone https://github.com/heitoroliveiro-dev/spj-crud.git
+cd spj-crud
+```
+
+Em seguida, execute:
 
 ```bash
 docker compose up --build
