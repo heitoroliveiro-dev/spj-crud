@@ -11,15 +11,17 @@ Antes de iniciar, tenha instalado:
 - Docker
 - Docker Compose
 
-## Tecnologias usadas
+## Tecnologias
 
 | Recurso | Tecnologia |
 | --- | --- |
 | Runtime | Node.js |
 | API | Express |
-| ORM | Prisma |
-| Banco de dados | PostgreSQL |
-| Ambiente local | Docker Compose |
+| Database Engine | PostgreSQL |
+| ORM | Prisma 7.8.0 |
+| Client | Prisma Client gerado em `backend/src/generated/prisma` |
+| Migration inicial | `20260501214042_init` |
+| Banco local | `spj_db` |
 
 ## Como rodar com Docker
 
@@ -30,15 +32,6 @@ Na raiz do repositório, execute:
 ```bash
 docker compose up --build
 ```
-
-O Compose vai:
-
-- criar o container `spj_db` com PostgreSQL;
-- criar o container `spj_backend` com Node.js;
-- aguardar o banco ficar pronto;
-- executar `npx prisma generate`;
-- aplicar as migrations com `npx prisma migrate deploy`;
-- iniciar a API com `npm start`.
 
 A API ficara disponivel em:
 
@@ -78,6 +71,21 @@ Se a porta `3001` ja estiver em uso, pare o processo local que estiver rodando n
 
 ```bash
 docker compose up --build
+```
+
+Verifique se o banco foi iniciado corretamente com:
+
+O banco foi iniciado pela raiz do projeto:
+
+```bash
+docker compose ps
+```
+
+Status confirmado:
+
+```text
+NAME      IMAGE                COMMAND                  SERVICE   STATUS             PORTS
+spj_db    postgres:16-alpine   "docker-entrypoint.s..." db        Up                 0.0.0.0:5432->5432/tcp
 ```
 
 ## Como o backend está configurado no Docker

@@ -1,24 +1,123 @@
-# React + Vite
+# Frontend SPJ
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend do SPJ (Sistema de Processos Judiciais), construído em React com Vite. A interface consome a API do backend para listar, criar, editar e excluir processos judiciais e seus andamentos.
 
-Currently, two official plugins are available:
+## Layout padrão da aplicação
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A aplicação segue um layout administrativo simples, com foco em leitura rápida e ações diretas:
 
-## React Compiler
+- Cabeçalho azul escuro com identidade do sistema.
+- Conteúdo centralizado com largura máxima controlada por `.page-container`.
+- Cards para listagem de processos.
+- Seções brancas com borda sutil para detalhes e tabelas.
+- Botões de ação com padrão visual consistente.
+- Modais para criação e edição.
+- Toast no canto inferior central para feedback de sucesso.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Os estilos globais ficam concentrados em:
 
-## Expanding the ESLint configuration
+- `src/index.css`: importa Tailwind v4, define tokens globais e base visual.
+- `src/default.css`: define classes reutilizáveis do projeto, como `app-shell`, `page-container`, `section-card`, `button-primary`, `button-secondary`, `form-grid` e `form-field`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Arquitetura frontend
 
+A organização segue uma divisão simples por responsabilidade:
 
-ERRO ENCONTRADO NA INSTALAÇÃO DO TAILWIND DEVIDO A CONFLITO DE VERSOES. NOVA FORMA DE UTILIZAR TAILWIND COM VITE É COM PLUGIN VITE NO TAILWIND V4
-A correção recomendada é seguir o fluxo atual do Tailwind v4 com Vite: instalar @tailwindcss/vite, adicionar o plugin no vite.config.js e importar Tailwind no CSS. Não criar tailwind.config.js nem postcss.config.js por enquanto.
-https://tailwindcss.com/docs/installation/using-vite
+```text
+src/
+  components/       Componentes reutilizáveis de UI e formulário
+  pages/            Telas principais da aplicação
+  services/         Comunicação com a API
+  utils/            Formatadores e utilitários de data
+  App.jsx           Definição das rotas
+  main.jsx          Entrada da aplicação
+```
 
-index.css: variaveis globais
-app.css: estilo componente
+Fluxo principal:
+
+1. `App.jsx` define as rotas com React Router.
+2. `Dashboard.jsx` lista processos e gerencia o CRUD de processos.
+3. `DetalhesProcesso.jsx` mostra os dados de um processo e gerencia seus andamentos.
+4. `services/api.js` centraliza as chamadas HTTP.
+5. Componentes recebem dados e callbacks por props. As páginas controlam estado, carregamento, erros e submissões.
+
+## Tecnologias utilizadas
+
+| Tecnologia | Uso |
+| --- | --- |
+| React | Construção da interface |
+| Vite | Build e ambiente de desenvolvimento |
+| React Router DOM | Rotas entre listagem e detalhes |
+| React Hook Form | Controle e validação de formulários |
+| React Datepicker | Campo de data com calendário em formato brasileiro |
+| date-fns | Locale `pt-BR` para datas |
+| Tailwind CSS v4 | Utilitários e tokens visuais via `@tailwindcss/vite` |
+| Lucide React | Ícones |
+| Fetch API | Requisições HTTP centralizadas em `services/api.js` |
+| Nginx | Servir o build em container Docker |
+
+## Componentes do projeto
+
+| Componente | Responsabilidade |
+| --- | --- |
+| `ProcessoCard` | Exibe resumo do processo na listagem e ações de detalhe, edição e exclusão |
+| `ProcessoForm` | Formulário de criação e edição de processos |
+| `AndamentoForm` | Formulário de criação e edição de andamentos |
+| `DateField` | Campo de data com calendário, locale brasileiro, limite mínimo e limite máximo |
+| `Modal` | Estrutura reutilizável de modal |
+| `ConfirmDialog` | Confirmação para ações destrutivas |
+| `Toast` | Notificações temporárias no canto inferior central |
+
+## Validações básicas do frontend
+
+### Processos
+
+- Campos obrigatórios:
+  - número do processo;
+  - data de abertura;
+  - descrição;
+  - cliente;
+  - advogado;
+  - UF.
+- Data de abertura:
+  - exibida no padrão `dd/mm/aaaa`;
+  - não permite data futura;
+  - caso receba data futura, normaliza para a data atual.
+- Número do processo:
+  - se o backend retornar conflito por número já cadastrado, a mensagem é exibida abaixo do campo.
+
+### Andamentos
+
+- Campos obrigatórios:
+  - data;
+  - descrição.
+- Data do andamento:
+  - exibida no padrão `dd/mm/aaaa`;
+  - não permite data futura;
+  - não permite data anterior à data de abertura do processo;
+  - usa `minDate` com base no processo aberto na tela de detalhes.
+
+### Feedback visual
+
+- Erros de carregamento aparecem em blocos destacados.
+- Sucessos aparecem em toast por 5 segundos.
+- Ações destrutivas exigem confirmação em modal.
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
+
+## Variável de ambiente
+
+O frontend usa a variável de build:
+
+```text
+VITE_API_BASE=http://localhost:3001
+```
+
+No Docker Compose, ela é enviada como argumento de build para apontar o frontend para a API local.

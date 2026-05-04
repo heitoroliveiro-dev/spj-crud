@@ -1,4 +1,4 @@
-# GitFlow simplificado
+# Resumo GitFlow
 
 Trabalho realizado com apenas 4 tipos de branch:
 
