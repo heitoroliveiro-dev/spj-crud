@@ -1,33 +1,34 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { DateField } from './DateField';
+import { toDateObject } from '../utils/dateUtils';
 
-function toDateInput(value) {
-  if (!value) return '';
-  return String(value).slice(0, 10);
-}
-
-export function AndamentoForm({ initialData, onSubmit, onCancel, isSubmitting = false }) {
+export function AndamentoForm({ initialData, onSubmit, onCancel, isSubmitting = false, minDate }) {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm();
 
   useEffect(() => {
     reset({
-      data: toDateInput(initialData?.data),
+      data: toDateObject(initialData?.data),
       descricao: initialData?.descricao || '',
     });
   }, [initialData, reset]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <label className="form-field">
-        Data
-        <input type="date" {...register('data', { required: 'Informe a data do andamento' })} />
-        {errors.data && <span className="text-sm text-red-600">{errors.data.message}</span>}
-      </label>
+      <DateField
+        control={control}
+        name="data"
+        label="Data"
+        requiredMessage="Informe a data do andamento"
+        error={errors.data?.message}
+        minDate={minDate}
+      />
 
       <label className="form-field">
         Descrição

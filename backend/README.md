@@ -124,6 +124,7 @@ Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do con
 | `npm install` | `backend` | Instala dependencias |
 | `npx prisma migrate dev` | `backend` | Aplica migrations no banco local |
 | `npx prisma generate` | `backend` | Gera o Prisma Client |
+| `npx prisma studio` | `backend` | Abre a visualização do prisma studio no navegador |
 | `npm run dev` | `backend` | Inicia a API em desenvolvimento |
 | `npm start` | `backend` | Inicia a API com Node |
 

@@ -1,5 +1,6 @@
 const andamentoRepository = require('../repositories/andamentoRepository');
 const processoRepository = require('../repositories/processoRepository');
+const { dataMenorQue, parseDataBrasileiraOuIso } = require('../utils/dateUtils');
 
 function reportaErro(message, status = 400) {
     const error = new Error(message);
@@ -27,14 +28,10 @@ function validarCamposObrigatorios(payload) {
     }
 }
 
-/* Refatorar validação de data */
-function validarData(data) {
-    const dataConvertida = new Date(data);
-
-    if(Number.isNaN(dataConvertida.getTime())) {
-        throw reportaErro('Data do andamento inválida', 400);
+function validarDataAndamento(dataAndamento, processo) {
+    if (dataMenorQue(dataAndamento, processo.dataAbertura)) {
+        throw reportaErro('A data do andamento não pode ser anterior à data de abertura do processo', 400);
     }
-    return dataConvertida;
 }
 
 const andamentoService = {
@@ -77,8 +74,11 @@ const andamentoService = {
             throw reportaErro('Processo não encontrado', 404);
         }
 
+        const dataAndamento = parseDataBrasileiraOuIso(payload.data, 'Data do andamento');
+        validarDataAndamento(dataAndamento, processo);
+
         const andamento = await andamentoRepository.create({
-            data: validarData(payload.data),
+            data: dataAndamento,
             descricao: payload.descricao,
             processosId,
         });
@@ -101,8 +101,12 @@ const andamentoService = {
             throw reportaErro('Andamento não encontrado', 404);
         }
 
+        const processo = await processoRepository.findById(andamentoExistente.processosId);
+        const dataAndamento = parseDataBrasileiraOuIso(payload.data, 'Data do andamento');
+        validarDataAndamento(dataAndamento, processo);
+
         const andamento = await andamentoRepository.update(andamentoId, {
-            data: validarData(payload.data),
+            data: dataAndamento,
             descricao: payload.descricao,
         });
 

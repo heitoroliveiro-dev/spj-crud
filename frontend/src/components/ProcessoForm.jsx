@@ -1,25 +1,23 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { DateField } from './DateField';
+import { toDateObject } from '../utils/dateUtils';
 
 const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'];
-
-function toDateInput(value) {
-  if (!value) return '';
-  return String(value).slice(0, 10);
-}
 
 export function ProcessoForm({ initialData, onSubmit, onCancel, isSubmitting = false, fieldErrors = {} }) {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm();
 
   useEffect(() => {
     reset({
       numeroProcesso: initialData?.numeroProcesso || '',
-      dataAbertura: toDateInput(initialData?.dataAbertura),
+      dataAbertura: toDateObject(initialData?.dataAbertura),
       descricao: initialData?.descricao || '',
       cliente: initialData?.cliente || '',
       advogado: initialData?.advogado || '',
@@ -38,11 +36,13 @@ export function ProcessoForm({ initialData, onSubmit, onCancel, isSubmitting = f
           {numeroProcessoError && <span className="text-sm text-red-600">{numeroProcessoError}</span>}
         </label>
 
-        <label className="form-field">
-          Data de Abertura
-          <input type="date" {...register('dataAbertura', { required: 'Informe a data de abertura' })} />
-          {errors.dataAbertura && <span className="text-sm text-red-600">{errors.dataAbertura.message}</span>}
-        </label>
+        <DateField
+          control={control}
+          name="dataAbertura"
+          label="Data de Abertura"
+          requiredMessage="Informe a data de abertura"
+          error={errors.dataAbertura?.message}
+        />
 
         <label className="form-field">
           Cliente
