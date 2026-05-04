@@ -4,17 +4,6 @@ A persistencia de dados do SPJ foi estruturada com **PostgreSQL** em container D
 
 Esta pagina documenta a evolucao real do ambiente de banco: container PostgreSQL, ajuste do Prisma 7, criacao da migration inicial e validacao via Prisma Studio.
 
-## Tecnologias
-
-| Recurso | Escolha |
-| --- | --- |
-| Database Engine | PostgreSQL |
-| Container | Docker Compose |
-| ORM | Prisma 7.8.0 |
-| Client | Prisma Client gerado em `backend/src/generated/prisma` |
-| Migration inicial | `20260501214042_init` |
-| Banco local | `spj_db` |
-
 ## 1. Container PostgreSQL
 
 O servico de banco foi definido na raiz do projeto em `docker-compose.yml`.
