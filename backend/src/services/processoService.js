@@ -1,5 +1,6 @@
 const { report } = require('node:process');
 const processoRepository = require('../repositories/processoRepository');
+const { parseDataBrasileiraOuIso } = require('../utils/dateUtils');
 
 /* Padroniza o UF com letras maiúsculas */
 function normalizaUf(uf) {
@@ -73,7 +74,7 @@ const processoService = {
         const processo = await processoRepository.create({
             ...payload,
             uf,
-            dataAbertura: new Date(payload.dataAbertura)
+            dataAbertura: parseDataBrasileiraOuIso(payload.dataAbertura, 'Data de abertura')
         });
         
         return {
@@ -102,7 +103,7 @@ const processoService = {
         return processoRepository.update(Number(id),{
             ...payload,
             uf,
-            dataAbertura: new Date(payload.dataAbertura),
+            dataAbertura: parseDataBrasileiraOuIso(payload.dataAbertura, 'Data de abertura'),
         });
     },
     

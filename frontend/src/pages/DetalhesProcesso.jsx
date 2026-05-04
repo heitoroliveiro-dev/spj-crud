@@ -257,6 +257,7 @@ export function DetalhesProcesso() {
           onSubmit={salvarAndamento}
           onCancel={() => setAndamentoModalOpen(false)}
           isSubmitting={submitting}
+          minDate={processo.dataAbertura}
         />
       </Modal>
 
