@@ -195,6 +195,33 @@ PUT    /api/andamentos/:id
 DELETE /api/andamentos/:id
 ```
 
+## Testes
+
+Devido ao prazo limite para entrega do projeto, os testes automatizados unitários e de integração foram implementados somente no backend.
+
+A cobertura atual prioriza as regras de negócio e os principais contratos HTTP da API:
+
+- testes unitários de utilitários de data;
+- testes unitários dos services de processos e andamentos;
+- testes de integração das rotas Express com `supertest`;
+- validação do tratamento global de erros pelo `errorHandler`.
+
+Para rodar os testes do backend:
+
+```bash
+cd backend
+npm test
+```
+
+Para gerar relatório de cobertura:
+
+```bash
+cd backend
+npm run test:coverage
+```
+
+A documentação detalhada dos testes está em [`backend/tests/README.md`](./backend/tests/README.md).
+
 ## Frontend
 
 O frontend possui duas telas principais:
