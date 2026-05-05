@@ -73,7 +73,11 @@ Clone o repositório e entre na pasta do projeto:
 git clone https://github.com/heitoroliveiro-dev/spj-crud.git
 cd spj-crud
 ```
+---
+**Atenção**:
+Para que o projeto rode com `docker compose` é importante garantir que o aplicativo Docker foi aberto e que, no canto inferior esquerdo da tela, apareça a mensagem `Docker is running`.
 
+---
 Em seguida, execute:
 
 ```bash
