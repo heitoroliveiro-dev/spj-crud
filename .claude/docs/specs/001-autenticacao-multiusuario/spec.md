@@ -1,7 +1,7 @@
 # SPEC — Autenticação multiusuário
 
 - **Pasta**: `001-autenticacao-multiusuario/`
-- **Status**: aprovada
+- **Status**: entregue
 - **Autor**: Heitor Oliveiro (com apoio de Claude) · **Data**: 2026-08-06 · **ADRs relacionadas**: ADR-0002 (JWT Bearer em memória), ADR-0003 (provedor de e-mail Brevo)
 
 Esta é a **fase 1 (o quê e por quê)** do fluxo SDD. Sem detalhe técnico — isso vai em `plan.md`.
@@ -57,23 +57,23 @@ Processos e Andamentos.
 
 ## 5. Critérios de aceite
 
-- [ ] Uma pessoa sem conta consegue se cadastrar informando e-mail e senha.
-- [ ] Depois do cadastro, ela recebe um e-mail com link de confirmação e não consegue entrar
+- [x] Uma pessoa sem conta consegue se cadastrar informando e-mail e senha.
+- [x] Depois do cadastro, ela recebe um e-mail com link de confirmação e não consegue entrar
       antes de clicar nele.
-- [ ] Clicar no link confirma o e-mail e mostra uma tela de sucesso.
-- [ ] Com e-mail confirmado, login funciona com e-mail e senha corretos.
-- [ ] Sem confirmar o e-mail, tentar entrar mostra mensagem específica pedindo confirmação (não
+- [x] Clicar no link confirma o e-mail e mostra uma tela de sucesso.
+- [x] Com e-mail confirmado, login funciona com e-mail e senha corretos.
+- [x] Sem confirmar o e-mail, tentar entrar mostra mensagem específica pedindo confirmação (não
       uma mensagem genérica de erro).
-- [ ] E-mail ou senha incorretos mostram a mesma mensagem genérica de erro (não revela se o
+- [x] E-mail ou senha incorretos mostram a mesma mensagem genérica de erro (não revela se o
       e-mail existe).
-- [ ] É possível pedir redefinição de senha por e-mail e definir uma senha nova a partir do link
+- [x] É possível pedir redefinição de senha por e-mail e definir uma senha nova a partir do link
       recebido.
-- [ ] Depois de logada, uma pessoa só vê/edita/exclui os processos e andamentos que ela mesma
+- [x] Depois de logada, uma pessoa só vê/edita/exclui os processos e andamentos que ela mesma
       criou — testável criando duas contas e confirmando que uma não vê os dados da outra, nem
       acessando a URL de detalhe diretamente.
-- [ ] Acessar a lista de processos sem estar logado redireciona para a tela de login.
-- [ ] Existe um botão de logout que funciona imediatamente.
-- [ ] A senha nunca aparece em texto puro em nenhum lugar visível (tela, log, resposta de rede).
+- [x] Acessar a lista de processos sem estar logado redireciona para a tela de login.
+- [x] Existe um botão de logout que funciona imediatamente.
+- [x] A senha nunca aparece em texto puro em nenhum lugar visível (tela, log, resposta de rede).
 
 ## 6. Fora de escopo
 

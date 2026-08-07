@@ -71,7 +71,7 @@ Esta é a **fase 3** do fluxo SDD: quebra do plano em tarefas pequenas, ordenada
   `userId`, depende de T11
 
 ## Verificação dos critérios de aceite da spec
-- [ ] T26 — Validar item a item a seção 5 de `spec.md`: signup → e-mail recebido → confirmação →
+- [x] T26 — Validar item a item a seção 5 de `spec.md`: signup → e-mail recebido → confirmação →
   login bloqueado antes de confirmar → login funciona depois → mensagem genérica de erro →
   reset de senha ponta a ponta → isolamento de dado entre duas contas → guard de rota → logout →
   senha nunca exposta — incluindo o caso de cold start do Render no primeiro acesso do dia
