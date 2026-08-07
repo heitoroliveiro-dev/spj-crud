@@ -13,7 +13,7 @@ const andamentoController = {
     async index(req, res, next){
         try {
             const { processoId } = req.params;
-            const resultado = await andamentoService.buscaAndamentoPorProcesso(processoId);
+            const resultado = await andamentoService.buscaAndamentoPorProcesso(processoId, req.user.id);
             return res.status(200).json(resultado);
         } catch (error){
             return next(error)
@@ -23,7 +23,7 @@ const andamentoController = {
     async show(req,res,next){
         try {
             const { id } = req.params;
-            const resultado = await andamentoService.buscarAndamentoPorId(id);
+            const resultado = await andamentoService.buscarAndamentoPorId(id, req.user.id);
             return res.status(200).json(resultado);
         } catch(error){
             return next(error)
@@ -33,7 +33,7 @@ const andamentoController = {
     async store(req, res, next) {
         try {
             const { processoId } = req.params;
-            const resultado = await andamentoService.criar(processoId, req.body);
+            const resultado = await andamentoService.criar(processoId, req.body, req.user.id);
             return res.status(201).json(resultado);
         } catch (error) {
             return next(error);
@@ -44,7 +44,7 @@ const andamentoController = {
         try {
             const { id } = req.params;
 
-            const resultado = await andamentoService.atualizar(id, req.body);
+            const resultado = await andamentoService.atualizar(id, req.body, req.user.id);
 
             return res.status(200).json(resultado);
         } catch (error) {
@@ -56,7 +56,7 @@ const andamentoController = {
         try {
             const { id } = req.params;
 
-            const resultado = await andamentoService.remover(id);
+            const resultado = await andamentoService.remover(id, req.user.id);
 
             return res.status(200).json(resultado);
         } catch (error) {

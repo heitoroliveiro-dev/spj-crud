@@ -2,6 +2,12 @@
 // Testa se a camada HTTP chama o service, retorna status correto e usa o errorHandler.
 
 const request = require('supertest');
+
+jest.mock('../../src/middlewares/requireAuth', () => (req, res, next) => {
+  req.user = { id: 1, email: 'usuario@teste.com' };
+  next();
+});
+
 const app = require('../../src/app');
 const processoService = require('../../src/services/processoService');
 

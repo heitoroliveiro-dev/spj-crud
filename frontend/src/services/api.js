@@ -1,11 +1,24 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
+/* token mantido só em memória (nunca localStorage) — setado pelo AuthContext no login/logout */
+let authToken = null;
+let onUnauthorized = null;
+
+export function setAuthToken(token) {
+    authToken = token;
+}
+
+export function setOnUnauthorized(callback) {
+    onUnauthorized = callback;
+}
+
 /* função que empacota a API e valida se existe resposta ou não */
 const request = async (endpoint, options = {}) => {
     const response = await fetch (`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
             ...(options.headers || {}),
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
     });
 
@@ -13,6 +26,10 @@ const request = async (endpoint, options = {}) => {
     const data = await response.json().catch(() => ({}));
 
     if(!response.ok) {
+        if (response.status === 401 && onUnauthorized) {
+            onUnauthorized();
+        }
+
         const error = new Error(data.message || data.error || 'Erro na requisição');
         error.status = response.status;
         error.data = data;
@@ -23,6 +40,45 @@ const request = async (endpoint, options = {}) => {
 }
 
 export const api = {
+
+/********************************
+ * AUTENTICAÇÃO
+ *******************************/
+
+/* cadastro | POST ******/
+signup: (payload) => request(`/api/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+}),
+
+/* confirmação de e-mail | POST ******/
+verifyEmail: (token) => request(`/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+}),
+
+/* login | POST ******/
+login: (payload) => request(`/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+}),
+
+/* pedido de redefinição de senha | POST ******/
+forgotPassword: (email) => request(`/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+}),
+
+/* redefinição de senha | POST ******/
+resetPassword: (token, novaSenha) => request(`/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, novaSenha }),
+}),
 
 /********************************
  * PROCESSOS

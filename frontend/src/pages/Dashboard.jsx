@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Scale } from 'lucide-react';
+import { Plus, Search, Scale, LogOut } from 'lucide-react';
 import { api } from '../services/api';
 import { ProcessoCard } from '../components/ProcessoCard';
 import { Modal } from '../components/Modal';
 import { ProcessoForm } from '../components/ProcessoForm';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Toast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 
 export function Dashboard() {
+    const { user, logout } = useAuth();
     const [processos, setProcessos] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -123,10 +125,21 @@ export function Dashboard() {
 return (
     <div className="app-shell">
       <header className="bg-primary text-primary-foreground shadow-lg">
-        <div className="page-container py-6">
+        <div className="page-container py-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Scale size={32} />
             <h1 className="text-3xl font-semibold">Sistema de Processos Judiciais</h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            {user?.email && <span className="hidden sm:inline text-primary-foreground/80">{user.email}</span>}
+            <button
+              type="button"
+              onClick={logout}
+              className="button-secondary"
+              aria-label="Sair"
+            >
+              <LogOut size={16} /> Sair
+            </button>
           </div>
         </div>
       </header>

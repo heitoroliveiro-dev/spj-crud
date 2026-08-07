@@ -7,10 +7,12 @@ const processoRepository = require('../../../src/repositories/processoRepository
 jest.mock('../../../src/repositories/andamentoRepository');
 jest.mock('../../../src/repositories/processoRepository');
 
+const USER_ID = 1;
+
 describe('andamentoService', () => {
   test('lança erro 400 para ID inválido', async () => {
     await expect(
-      andamentoService.buscarAndamentoPorId('abc')
+      andamentoService.buscarAndamentoPorId('abc', USER_ID)
     ).rejects.toMatchObject({
       message: 'ID do andamento inválido',
       status: 400,
@@ -24,7 +26,21 @@ describe('andamentoService', () => {
       andamentoService.criar(1, {
         data: '10/05/2025',
         descricao: 'Petição inicial',
-      })
+      }, USER_ID)
+    ).rejects.toMatchObject({
+      message: 'Processo não encontrado',
+      status: 404,
+    });
+  });
+
+  test('lança erro 404 quando processo é de outro usuário', async () => {
+    processoRepository.findById.mockResolvedValue({ id: 1, userId: 999 });
+
+    await expect(
+      andamentoService.criar(1, {
+        data: '10/05/2025',
+        descricao: 'Petição inicial',
+      }, USER_ID)
     ).rejects.toMatchObject({
       message: 'Processo não encontrado',
       status: 404,
@@ -34,6 +50,7 @@ describe('andamentoService', () => {
   test('lança erro 400 quando data do andamento é anterior à abertura', async () => {
     processoRepository.findById.mockResolvedValue({
       id: 1,
+      userId: USER_ID,
       dataAbertura: new Date(2025, 4, 10, 12),
     });
 
@@ -41,7 +58,7 @@ describe('andamentoService', () => {
       andamentoService.criar(1, {
         data: '09/05/2025',
         descricao: 'Andamento inválido',
-      })
+      }, USER_ID)
     ).rejects.toMatchObject({
       message: 'A data do andamento não pode ser anterior à data de abertura do processo',
       status: 400,
@@ -51,6 +68,7 @@ describe('andamentoService', () => {
   test('cria andamento com sucesso', async () => {
     processoRepository.findById.mockResolvedValue({
       id: 1,
+      userId: USER_ID,
       dataAbertura: new Date(2025, 4, 10, 12),
     });
 
@@ -63,7 +81,7 @@ describe('andamentoService', () => {
     const result = await andamentoService.criar(1, {
       data: '10/05/2025',
       descricao: 'Audiência marcada',
-    });
+    }, USER_ID);
 
     expect(result.message).toBe('Andamento criado com sucesso');
     expect(andamentoRepository.create).toHaveBeenCalledWith(

@@ -15,16 +15,18 @@ const payloadBase = {
     uf: 'MG',
 }
 
+const USER_ID = 1;
+
 describe('processoService', () => {
     test('cria processo com UF MG e retorna mensagem específica', async () => {
         processoRepository.findByNumeroProcesso.mockResolvedValue(null);
-        processoRepository.create.mockResolvedValue({ id: 1, ...payloadBase, uf: 'MG' });
+        processoRepository.create.mockResolvedValue({ id: 1, ...payloadBase, uf: 'MG', userId: USER_ID });
 
-        const result = await processoService.novoProcesso(payloadBase);
+        const result = await processoService.novoProcesso(payloadBase, USER_ID);
 
         expect(result.message).toBe('Processo de MG criado com sucesso');
         expect(processoRepository.create).toHaveBeenCalledWith(
-            expect.objectContaining({ uf: 'MG' })
+            expect.objectContaining({ uf: 'MG', userId: USER_ID })
         );
     });
 
@@ -35,18 +37,18 @@ describe('processoService', () => {
         };
 
         processoRepository.findByNumeroProcesso.mockResolvedValue(null);
-        processoRepository.create.mockResolvedValue({ id: 1, ...payloadSP });
+        processoRepository.create.mockResolvedValue({ id: 1, ...payloadSP, userId: USER_ID });
 
-        const result = await processoService.novoProcesso(payloadSP);
+        const result = await processoService.novoProcesso(payloadSP, USER_ID);
 
         expect(result.message).toBe('Processo fora de MG criado com sucesso');
         expect(processoRepository.create).toHaveBeenCalledWith(
-            expect.objectContaining({ uf: 'SP' })
+            expect.objectContaining({ uf: 'SP', userId: USER_ID })
         );
     });
 
     test('lança erro 400 quando campo obrigatório está ausente', async () => {
-        await expect(processoService.novoProcesso({ ...payloadBase, cliente: '' })
+        await expect(processoService.novoProcesso({ ...payloadBase, cliente: '' }, USER_ID)
             ).rejects.toMatchObject({
                 message: 'Campo obrigatório ausente: cliente',
                 status: 400,
@@ -55,9 +57,9 @@ describe('processoService', () => {
 
     test('lança erro 409 quando processo já existe', async () => {
         processoRepository.findByNumeroProcesso.mockResolvedValue({ id: 99 });
-        
+
         await expect(
-            processoService.novoProcesso(payloadBase)
+            processoService.novoProcesso(payloadBase, USER_ID)
         ).rejects.toMatchObject({
             status: 409,
         });
@@ -66,7 +68,16 @@ describe('processoService', () => {
     test('lança erro 404 ao buscar processo inexistente', async () => {
         processoRepository.findById.mockResolvedValue(null);
 
-        await expect(processoService.buscarPorId(999)).rejects.toMatchObject({
+        await expect(processoService.buscarPorId(999, USER_ID)).rejects.toMatchObject({
+            message: 'Processo não encontrado',
+            status: 404,
+        });
+    });
+
+    test('lança erro 404 ao buscar processo de outro usuário', async () => {
+        processoRepository.findById.mockResolvedValue({ id: 1, userId: 999 });
+
+        await expect(processoService.buscarPorId(1, USER_ID)).rejects.toMatchObject({
             message: 'Processo não encontrado',
             status: 404,
         });

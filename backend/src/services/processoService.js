@@ -43,58 +43,55 @@ function validarCamposObrigatorios(payload) {
 }
 
 const processoService = {
-    
-    /* LISTAR  PROCESSOS*/
-    async listar() {
-        return processoRepository.findAll();
+
+    /* LISTAR PROCESSOS do usuário logado */
+    async listar(userId) {
+        return processoRepository.findAll(userId);
     },
-    
-    /* DETALHAR PROCESSO POR ID */
-    async buscarPorId(id) {
+
+    /* DETALHAR PROCESSO POR ID — só se for do usuário logado */
+    async buscarPorId(id, userId) {
         const processo = await processoRepository.findById(Number(id));
-        
-        if(!processo) {
+
+        if(!processo || processo.userId !== userId) {
             throw reportaErro('Processo não encontrado', 404)
         }
-        
+
         return processo;
     },
-    
+
     /* CRIAR NOVO PROCESSO */
-    async novoProcesso(payload) {
+    async novoProcesso(payload, userId) {
         validarCamposObrigatorios(payload);
 
         const uf = normalizaUf(payload.uf);
-        const processoExistente = await processoRepository.findByNumeroProcesso(payload.numeroProcesso);
+        const processoExistente = await processoRepository.findByNumeroProcesso(payload.numeroProcesso, userId);
 
         if (processoExistente) {
             throw reportaErro(mensagemProcessoDuplicado(), 409);
         }
-        
+
         const processo = await processoRepository.create({
             ...payload,
             uf,
+            userId,
             dataAbertura: parseDataBrasileiraOuIso(payload.dataAbertura, 'Data de abertura')
         });
-        
+
         return {
             data: processo,
             message: mensagemCriacaoPorUf(uf), /* após criar novoProcesso, mensagem aparece baseado no parametro uf definido em normalizaUf(payload.uf) */
         };
     },
-    
-    /* ATUALIZAR PROCESSO */
-    async atualizarProcesso (id, payload) {
-        const processo = await processoRepository.findById(Number(id));
 
-        if(!processo){
-            throw reportaErro('Processo não encontrado', 404)
-        }
+    /* ATUALIZAR PROCESSO */
+    async atualizarProcesso (id, payload, userId) {
+        await this.buscarPorId(id, userId);
 
         validarCamposObrigatorios(payload);
 
         const uf = normalizaUf(payload.uf);
-        const processoComMesmoNumero = await processoRepository.findByNumeroProcesso(payload.numeroProcesso);
+        const processoComMesmoNumero = await processoRepository.findByNumeroProcesso(payload.numeroProcesso, userId);
 
         if (processoComMesmoNumero && processoComMesmoNumero.id !== Number(id)) {
             throw reportaErro(mensagemProcessoDuplicado(), 409);
@@ -106,10 +103,10 @@ const processoService = {
             dataAbertura: parseDataBrasileiraOuIso(payload.dataAbertura, 'Data de abertura'),
         });
     },
-    
+
     /* REMOVER PROCESSO */
-    async removerProcesso (id) {
-        await this.buscarPorId(id);
+    async removerProcesso (id, userId) {
+        await this.buscarPorId(id, userId);
         return processoRepository.delete(Number(id));
     },
 };

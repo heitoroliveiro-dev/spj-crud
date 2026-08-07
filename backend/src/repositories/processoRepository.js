@@ -9,9 +9,10 @@ const prisma = require('../database/prismaClient');
 
 const processoRepository = {
 
-    /* Buscar todos */
-    findAll() {
+    /* Buscar todos de um usuário */
+    findAll(userId) {
         return prisma.processos.findMany({
+            where: { userId },
             orderBy: { createdAt: 'desc' },
             include: {
                 andamentos: {
@@ -21,7 +22,7 @@ const processoRepository = {
         });
     },
 
-    /* Buscar por ID */
+    /* Buscar por ID — sem filtro de dono aqui; a verificação de posse é feita no service */
     findById(id) {
         return prisma.processos.findUnique({
             where: { id },
@@ -33,10 +34,10 @@ const processoRepository = {
         });
     },
 
-    /* Buscar por número do processo */
-    findByNumeroProcesso(numeroProcesso) {
+    /* Buscar por número do processo, dentro dos processos de um usuário */
+    findByNumeroProcesso(numeroProcesso, userId) {
         return prisma.processos.findUnique({
-            where: { numeroProcesso },
+            where: { numeroProcesso_userId: { numeroProcesso, userId } },
         });
     },
 

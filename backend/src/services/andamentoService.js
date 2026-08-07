@@ -34,10 +34,22 @@ function validarDataAndamento(dataAndamento, processo) {
     }
 }
 
+/* Busca o processo pai e garante que pertence ao usuário logado — andamento não tem userId
+   próprio (evita denormalização), a posse é sempre derivada do processo. */
+async function buscarProcessoDoUsuario(processosId, userId) {
+    const processo = await processoRepository.findById(processosId);
+
+    if (!processo || processo.userId !== userId) {
+        throw reportaErro('Processo não encontrado', 404);
+    }
+
+    return processo;
+}
+
 const andamentoService = {
 
     /* buscar andamento por andamentoId */
-    async buscarAndamentoPorId(andamentoId){
+    async buscarAndamentoPorId(andamentoId, userId){
         const andamentoIdValidado = validarId(andamentoId, 'ID do andamento')
 
         const andamento = await andamentoRepository.findById(andamentoIdValidado);
@@ -46,33 +58,31 @@ const andamentoService = {
             throw reportaErro('Andamento não encontrado', 404)
         }
 
+        const processo = await processoRepository.findById(andamento.processosId);
+
+        if (!processo || processo.userId !== userId) {
+            throw reportaErro('Andamento não encontrado', 404);
+        }
+
         return andamento;
     },
 
     /* buscar andamento por processoId */
-    async buscaAndamentoPorProcesso(processoId) {
+    async buscaAndamentoPorProcesso(processoId, userId) {
         const processosId = validarId(processoId, 'ID do processo');
-        
-        const processo = await processoRepository.findById(processosId);
 
-        if(!processo) {
-            throw reportaErro('Processo não encontrado', 404)
-        }
-        
+        await buscarProcessoDoUsuario(processosId, userId);
+
         return andamentoRepository.findByProcessoId(processosId);
     },
 
     /* Criar */
-    async criar(processoId, payload) {
+    async criar(processoId, payload, userId) {
         const processosId = validarId(processoId, 'ID do processo');
 
         validarCamposObrigatorios(payload);
 
-        const processo = await processoRepository.findById(processosId);
-
-        if(!processo) {
-            throw reportaErro('Processo não encontrado', 404);
-        }
+        const processo = await buscarProcessoDoUsuario(processosId, userId);
 
         const dataAndamento = parseDataBrasileiraOuIso(payload.data, 'Data do andamento');
         validarDataAndamento(dataAndamento, processo);
@@ -90,7 +100,7 @@ const andamentoService = {
     },
 
     /* Atualizar */
-    async atualizar(id, payload) {
+    async atualizar(id, payload, userId) {
         const andamentoId = validarId(id, 'ID do andamento');
 
         validarCamposObrigatorios(payload);
@@ -101,7 +111,7 @@ const andamentoService = {
             throw reportaErro('Andamento não encontrado', 404);
         }
 
-        const processo = await processoRepository.findById(andamentoExistente.processosId);
+        const processo = await buscarProcessoDoUsuario(andamentoExistente.processosId, userId);
         const dataAndamento = parseDataBrasileiraOuIso(payload.data, 'Data do andamento');
         validarDataAndamento(dataAndamento, processo);
 
@@ -117,7 +127,7 @@ const andamentoService = {
     },
 
     /* Remover */
-    async remover(id) {
+    async remover(id, userId) {
         const andamentoId = validarId(id, 'ID do andamento');
 
         const andamentoExistente = await andamentoRepository.findById(andamentoId);
@@ -125,6 +135,8 @@ const andamentoService = {
         if (!andamentoExistente) {
             throw reportaErro('Andamento não encontrado', 404);
         }
+
+        await buscarProcessoDoUsuario(andamentoExistente.processosId, userId);
 
         await andamentoRepository.delete(andamentoId);
 
