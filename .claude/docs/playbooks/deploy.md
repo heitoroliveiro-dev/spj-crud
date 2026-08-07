@@ -73,6 +73,19 @@ Deploy automático: push em `main` no GitHub → Render e Vercel redeployam sozi
 |---|---|---|
 | `VITE_API_BASE` | `https://spj-crud-backend.onrender.com` | build-time, redeploy necessário se mudar |
 
+## SPA routing na Vercel
+
+O React Router usa rotas client-side (`/login`, `/cadastro`, etc.) que não existem como arquivo
+físico — sem configuração extra, acessar uma dessas URLs diretamente (refresh, link direto,
+compartilhado) retorna 404 da Vercel, porque o servidor estático procura um arquivo real. Corrigido
+por `frontend/vercel.json`:
+```json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
+Equivalente ao `try_files $uri $uri/ /index.html` já usado no `nginx.conf` do Docker Compose —
+mesma necessidade, sintaxe diferente por provedor. Sempre que uma rota nova for adicionada no
+frontend, não precisa mexer aqui de novo (o rewrite é um catch-all).
+
 ## Troubleshooting conhecido
 
 - **Frontend carrega mas fica "Carregando..." infinito**: quase sempre CORS — `FRONTEND_URL` no
