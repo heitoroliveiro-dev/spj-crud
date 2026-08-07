@@ -31,6 +31,9 @@ services:
       PUBLIC_BACKEND_URL: http://localhost:3001
       DATABASE_PUBLIC_HOST: localhost
       DATABASE_PUBLIC_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-apenas-para-uso-local-nao-usar-em-producao}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-naoresponda@localhost}
     ports:
       - "3001:3001"
 

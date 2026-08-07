@@ -19,9 +19,28 @@ Antes de iniciar, tenha instalado:
 | API | Express |
 | Database Engine | PostgreSQL |
 | ORM | Prisma 7.8.0 |
-| Client | Prisma Client gerado em `backend/src/generated/prisma` |
-| Migration inicial | `20260501214042_init` |
+| Client | Prisma Client gerado em `node_modules/@prisma/client` |
+| Migrations | `20260501214042_init`, `20260807012427_adicionar_autenticacao_multiusuario` |
 | Banco local | `spj_db` |
+| Hash de senha | bcryptjs |
+| Sessão | jsonwebtoken (JWT Bearer, sem cookie) |
+| Rate limiting | express-rate-limit |
+| E-mail transacional | Brevo (API HTTP) |
+
+## Variáveis de ambiente
+
+Copie `.env.example` para `.env` para rodar sem Docker (o Docker Compose já injeta essas
+variáveis automaticamente — ver raiz do projeto).
+
+| Variável | Obrigatória | Descrição |
+| --- | --- | --- |
+| `DATABASE_URL` | sim | Connection string do PostgreSQL |
+| `PORT` | não (padrão 3001) | Porta do servidor Express |
+| `FRONTEND_URL` | sim | Origem permitida no CORS |
+| `PUBLIC_BACKEND_URL` | não | Só usada no log de boot |
+| `JWT_SECRET` | sim | Segredo para assinar o JWT de sessão |
+| `BREVO_API_KEY` | sim (para envio de e-mail) | API key da Brevo |
+| `EMAIL_FROM` | sim (para envio de e-mail) | Remetente dos e-mails de verificação/reset |
 
 ## Como rodar com Docker
 
@@ -144,6 +163,24 @@ Isso acontece porque, dentro da rede do Docker Compose, `db` e o endereco do con
 | --- | --- | --- |
 | GET | `/health` | Verifica se a API esta respondendo |
 
+### Autenticação
+
+Rotas públicas, sem `Authorization`. `/signup`, `/login` e `/forgot-password` têm rate limiting
+(10 requisições / 15 min por IP).
+
+| Metodo | Rota | Descricao |
+| --- | --- | --- |
+| POST | `/api/auth/signup` | Cria conta e envia e-mail de confirmação |
+| POST | `/api/auth/verify-email` | Confirma o e-mail a partir do token recebido |
+| POST | `/api/auth/login` | Autentica e retorna o JWT |
+| POST | `/api/auth/forgot-password` | Envia e-mail com link de redefinição de senha |
+| POST | `/api/auth/reset-password` | Define nova senha a partir do token recebido |
+
+### Processos e Andamentos
+
+Todas as rotas abaixo exigem `Authorization: Bearer <token>` (obtido no login) e retornam/afetam
+somente os registros do usuário autenticado — nunca de outra conta.
+
 ### Processos
 
 | Metodo | Rota | Descricao |
@@ -175,6 +212,11 @@ npx prisma studio
 Abra a URL exibida no terminal e confira as tabelas `processos` e `andamentos`.
 
 ## Testes de API
+
+As capturas abaixo são anteriores à feature de autenticação — as rotas de `processos`/
+`andamentos` hoje exigem o header `Authorization: Bearer <token>` (obtido em
+`POST /api/auth/login`), que não aparece nessas imagens.
+
 ### **Health check**: `GET: {{base_url}}/health`
 
 ![health](../docs/assets/img/01-health.png)

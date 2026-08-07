@@ -2,7 +2,9 @@
 
 O SPJ é uma aplicação full-stack para gestão de processos judiciais e seus andamentos. O projeto foi desenvolvido como teste técnico, priorizando arquitetura simples, separação de responsabilidades, validações essenciais, persistência relacional e execução completa com Docker Compose.
 
-A aplicação permite cadastrar processos, consultar detalhes, registrar andamentos, editar informações e excluir registros com integridade entre processo e andamento.
+A aplicação permite cadastrar processos, consultar detalhes, registrar andamentos, editar informações e excluir registros com integridade entre processo e andamento. É **multiusuário**: cada pessoa cria sua própria conta (com confirmação de e-mail obrigatória) e só acessa os processos/andamentos que ela mesma criou.
+
+**Em produção**: [spj-crud.vercel.app](https://spj-crud.vercel.app) (frontend) · [spj-crud-backend.onrender.com](https://spj-crud-backend.onrender.com) (API) — hospedagem gratuita via Vercel + Render + Neon, ver seção [Deploy em produção](#deploy-em-produção).
 
 ## Requisitos funcionais
 
@@ -19,6 +21,13 @@ A aplicação permite cadastrar processos, consultar detalhes, registrar andamen
 | RF09 | Excluir andamentos |
 | RF10 | Exibir mensagem específica ao criar processo de MG |
 | RF11 | Pesquisar processos por número, cliente, advogado ou UF |
+| RF12 | Cadastrar conta com e-mail e senha |
+| RF13 | Confirmar e-mail via link recebido antes de permitir o primeiro login |
+| RF14 | Entrar com e-mail e senha |
+| RF15 | Solicitar redefinição de senha por e-mail |
+| RF16 | Redefinir senha a partir de um link recebido por e-mail |
+| RF17 | Sair da conta (logout) |
+| RF18 | Isolar processos e andamentos por conta — cada usuário só acessa o que criou |
 
 ## Requisitos não funcionais
 
@@ -33,17 +42,26 @@ A aplicação permite cadastrar processos, consultar detalhes, registrar andamen
 | RNF07 | Validar dados principais antes da persistência |
 | RNF08 | Servir o frontend em container Nginx |
 | RNF09 | Documentar execução, arquitetura e decisões principais |
+| RNF10 | Nunca armazenar senha ou token de verificação/reset em texto puro |
+| RNF11 | Limitar tentativas de signup/login/forgot-password por IP (rate limiting) |
+| RNF12 | Rodar em produção com hospedagem gratuita (Render + Vercel + Neon) |
 
 ## Regras de negócio implementadas
 
 - Processo deve possuir número, data de abertura, descrição, cliente, advogado e UF.
-- Número do processo deve ser único.
+- Número do processo deve ser único **por usuário** — duas contas diferentes podem cadastrar o mesmo número (são casos de pessoas diferentes), mas a mesma conta não pode repetir.
 - Processo criado com UF `MG` retorna mensagem específica: `Processo de MG criado com sucesso`.
 - Processo criado com outra UF retorna mensagem padrão para fora de MG.
 - Andamento deve pertencer a um processo existente.
 - Data de processo e andamento não pode ser futura.
 - Data de andamento não pode ser anterior à data de abertura do processo.
 - Exclusão de processo remove seus andamentos por cascade no banco.
+- E-mail de cadastro deve ser único; senha precisa ter no mínimo 8 caracteres.
+- Conta recém-criada não consegue logar até confirmar o e-mail pelo link recebido.
+- Login com credencial errada e pedido de redefinição de senha para e-mail inexistente retornam a mesma mensagem genérica — nunca revelam se a conta existe.
+- Token de confirmação de e-mail e de redefinição de senha são de uso único e expiram (24h).
+- Tentar acessar/editar/excluir um processo ou andamento de outra conta retorna "não encontrado" (404), nunca revela que o recurso existe para outro usuário.
+- Excluir uma conta remove em cascata todos os processos e andamentos dela.
 
 ## Tecnologias utilizadas
 
@@ -51,9 +69,12 @@ A aplicação permite cadastrar processos, consultar detalhes, registrar andamen
 | --- | --- |
 | Frontend | React, Vite, React Router DOM, React Hook Form, React Datepicker, Tailwind CSS v4, Lucide React |
 | Backend | Node.js, Express, Prisma ORM, PostgreSQL driver `pg` |
-| Banco de dados | PostgreSQL 16 |
+| Autenticação | bcryptjs (hash de senha), jsonwebtoken (JWT Bearer), express-rate-limit |
+| E-mail transacional | Brevo (API HTTP) |
+| Banco de dados | PostgreSQL 16 (Neon em produção) |
 | Containerização | Docker, Docker Compose, Nginx |
-| Documentação e fluxo | Markdown, Git, GitHub Projects |
+| Hospedagem (produção) | Render (backend), Vercel (frontend), Neon (banco) — todos free tier |
+| Documentação e fluxo | Markdown, Git, GitHub Projects, Spec-Driven Development (`.claude/`) |
 
 ## Pré-requisitos
 
@@ -73,6 +94,16 @@ Clone o repositório e entre na pasta do projeto:
 git clone https://github.com/heitoroliveiro-dev/spj-crud.git
 cd spj-crud
 ```
+
+**Opcional** — para os e-mails de verificação de cadastro e redefinição de senha funcionarem de
+verdade localmente, copie `.env.example` para `.env` na raiz e preencha `BREVO_API_KEY`/
+`EMAIL_FROM` com uma conta [Brevo](https://app.brevo.com) (free tier). Sem isso, o projeto sobe e
+o CRUD de processos funciona normalmente — só o envio de e-mail falha.
+
+```bash
+cp .env.example .env
+```
+
 ---
 **Atenção**:
 Para que o projeto rode com `docker compose` é importante garantir que o aplicativo Docker foi aberto e que, no canto inferior esquerdo da tela, apareça a mensagem `Docker is running`.
@@ -126,7 +157,8 @@ O `docker-compose.yml` orquestra três serviços:
 - Build a partir de `backend/Dockerfile`.
 - Expõe a porta `3001`.
 - Aguarda o banco ficar saudável antes de iniciar.
-- Recebe `DATABASE_URL` apontando para o host interno `db`.
+- Recebe `DATABASE_URL` apontando para o host interno `db`, além de `JWT_SECRET`,
+  `BREVO_API_KEY` e `EMAIL_FROM` (lidos de um `.env` opcional na raiz — ver seção anterior).
 - Ao iniciar, executa:
 
 ```bash
@@ -159,16 +191,18 @@ spj/
       routes/            Definição de rotas Express
       services/          Regras de negócio e validações
       repositories/      Acesso ao banco via Prisma
-      middlewares/       Tratamento global de erros
+      middlewares/       errorHandler e requireAuth (guard de autenticação)
       database/          Instância do Prisma Client
-      utils/             Utilitários compartilhados
+      utils/             Utilitários compartilhados (hash de senha, token, JWT)
   frontend/
     src/
-      components/        Componentes reutilizáveis
-      pages/             Telas da aplicação
+      components/        Componentes reutilizáveis (inclui RequireAuth, o guard de rota)
+      context/           Estado global (AuthContext)
+      pages/             Telas da aplicação (processos + login/cadastro/senha)
       services/          Cliente HTTP
       utils/             Formatadores e helpers
   docs/                  Documentação auxiliar do desenvolvimento
+  .claude/               Metodologia de trabalho (Spec-Driven Development) — não afeta o build
   docker-compose.yml     Orquestração dos serviços
 ```
 
@@ -181,12 +215,21 @@ O backend usa uma separação em camadas:
 - `services`: concentram regras de negócio.
 - `repositories`: acessam o banco via Prisma.
 - `middlewares/errorHandler`: padroniza erros da API.
+- `middlewares/requireAuth`: único ponto que lê e valida o JWT, popula `req.user` — protege todas
+  as rotas de `processos`/`andamentos`.
 
 Principais endpoints:
 
 ```text
 GET    /health
-GET    /api/processos
+
+POST   /api/auth/signup
+POST   /api/auth/verify-email
+POST   /api/auth/login
+POST   /api/auth/forgot-password
+POST   /api/auth/reset-password
+
+GET    /api/processos                              (requer Authorization: Bearer <token>)
 GET    /api/processos/:id
 POST   /api/processos
 PUT    /api/processos/:id
@@ -199,6 +242,11 @@ PUT    /api/andamentos/:id
 DELETE /api/andamentos/:id
 ```
 
+Toda rota de `processos`/`andamentos` é escopada pelo `userId` extraído do JWT — nunca por um
+valor vindo do corpo da requisição. Ver `.claude/skills/auth-api/SKILL.md` para o detalhe da
+implementação e `.claude/docs/architecture/adr/ADR-0002-autenticacao-jwt-bearer-em-memoria.md`
+para a decisão de transporte de sessão.
+
 ## Testes
 
 Devido ao prazo limite para entrega do projeto, os testes automatizados unitários e de integração foram implementados somente no backend.
@@ -206,8 +254,9 @@ Devido ao prazo limite para entrega do projeto, os testes automatizados unitári
 A cobertura atual prioriza as regras de negócio e os principais contratos HTTP da API:
 
 - testes unitários de utilitários de data;
-- testes unitários dos services de processos e andamentos;
-- testes de integração das rotas Express com `supertest`;
+- testes unitários dos services de processos, andamentos e autenticação;
+- testes unitários do middleware `requireAuth`;
+- testes de integração das rotas Express (incluindo `/api/auth/*`) com `supertest`;
 - validação do tratamento global de erros pelo `errorHandler`.
 
 Para rodar os testes do backend:
@@ -228,10 +277,18 @@ A documentação detalhada dos testes está em [`backend/tests/README.md`](./bac
 
 ## Frontend
 
-O frontend possui duas telas principais:
+Telas de processos (acesso restrito a quem está logado):
 
 - `Dashboard`: listagem, busca, criação, edição e exclusão de processos.
 - `DetalhesProcesso`: dados completos do processo e CRUD de andamentos.
+
+Telas de autenticação (públicas):
+
+- `Login`, `Signup`, `VerifyEmail` (confirma o link recebido por e-mail), `ForgotPassword`,
+  `ResetPassword` (define nova senha a partir do link recebido).
+
+`AuthContext` mantém o token JWT em memória (nunca em `localStorage`) e o usuário logado;
+`RequireAuth` é o guard de rota que redireciona para `/login` quando não há sessão válida.
 
 Componentes principais:
 
@@ -241,9 +298,28 @@ Componentes principais:
 - `DateField`;
 - `Modal`;
 - `ConfirmDialog`;
-- `Toast`.
+- `Toast`;
+- `RequireAuth`.
 
 Mais detalhes estão em [`frontend/README.md`](./frontend/README.md).
+
+## Deploy em produção
+
+O SPJ roda em produção com hospedagem 100% gratuita, em três provedores especializados:
+
+| Componente | Provedor | URL |
+| --- | --- | --- |
+| Frontend (React/Vite, estático) | Vercel | https://spj-crud.vercel.app |
+| Backend (Express, Docker) | Render | https://spj-crud-backend.onrender.com |
+| Banco (PostgreSQL serverless) | Neon | (connection string privada) |
+
+Deploy automático: push em `main` no GitHub redeploya backend e frontend sozinhos. Processo
+completo, variáveis de ambiente de cada provedor e troubleshooting conhecido (cold start do
+Render, rewrite de SPA na Vercel) estão documentados em
+[`.claude/docs/playbooks/deploy.md`](./.claude/docs/playbooks/deploy.md).
+
+**Limitação conhecida do free tier**: o backend do Render "dorme" após ~15 min de inatividade —
+a primeira requisição depois disso pode levar até ~50s para responder.
 
 ## Metodologia de desenvolvimento
 
@@ -260,9 +336,14 @@ Etapas principais:
 7. Construção do frontend conectado à API.
 8. Evolução de UX com modais, confirmações, date picker e toasts.
 9. Containerização de banco, backend e frontend.
-10. Revisão final de documentação e execução via Docker Compose.
+10. Deploy em produção gratuito (Neon + Render + Vercel).
+11. Adoção de Spec-Driven Development (SDD) para a evolução do projeto — toda funcionalidade não
+    trivial passa por spec → plano → tarefas → implementação, documentado em `.claude/`. A feature
+    de autenticação multiusuário foi a primeira construída inteiramente por esse fluxo, ver
+    [`.claude/docs/specs/001-autenticacao-multiusuario/`](./.claude/docs/specs/001-autenticacao-multiusuario/).
+12. Revisão final de documentação.
 
-O projeto também foi organizado com versionamento Git, branches por evolução e documentação auxiliar em `docs/`.
+O projeto também foi organizado com versionamento Git, branches por evolução e documentação auxiliar em `docs/` e `.claude/docs/`.
 
 ## Validação rápida
 
@@ -285,3 +366,7 @@ A interface deve estar disponível em:
 ```text
 http://localhost:5173
 ```
+
+Para testar o fluxo de autenticação localmente sem depender de e-mail real: crie uma conta pela
+tela de cadastro e confirme diretamente no banco (via `npx prisma studio` no backend, tabela
+`users`, coluna `email_verified_at`) — útil quando `BREVO_API_KEY` não está configurada.

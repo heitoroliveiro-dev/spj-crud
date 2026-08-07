@@ -25,8 +25,9 @@ A organização segue uma divisão simples por responsabilidade:
 
 ```text
 src/
-  components/       Componentes reutilizáveis de UI e formulário
-  pages/            Telas principais da aplicação
+  components/       Componentes reutilizáveis de UI e formulário (inclui RequireAuth, guard de rota)
+  context/          Estado global — AuthContext (token em memória e usuário logado)
+  pages/            Telas principais da aplicação e de autenticação
   services/         Comunicação com a API
   utils/            Formatadores e utilitários de data
   App.jsx           Definição das rotas
@@ -35,11 +36,16 @@ src/
 
 Fluxo principal:
 
-1. `App.jsx` define as rotas com React Router.
-2. `Dashboard.jsx` lista processos e gerencia o CRUD de processos.
-3. `DetalhesProcesso.jsx` mostra os dados de um processo e gerencia seus andamentos.
-4. `services/api.js` centraliza as chamadas HTTP.
-5. Componentes recebem dados e callbacks por props. As páginas controlam estado, carregamento, erros e submissões.
+1. `App.jsx` define as rotas com React Router — `/login`, `/cadastro`, `/verificar-email`,
+   `/esqueci-senha` e `/redefinir-senha` são públicas; `/processos` e `/processos/:id` ficam
+   dentro de um `<Route element={<RequireAuth />}>`.
+2. `AuthContext` guarda o JWT em memória (nunca `localStorage`) e expõe `login`/`signup`/`logout`.
+3. `Dashboard.jsx` lista processos e gerencia o CRUD de processos.
+4. `DetalhesProcesso.jsx` mostra os dados de um processo e gerencia seus andamentos.
+5. `services/api.js` centraliza as chamadas HTTP e anexa `Authorization: Bearer <token>`
+   automaticamente quando há sessão ativa; um 401 dispara logout automático via callback
+   registrado pelo `AuthContext`.
+6. Componentes recebem dados e callbacks por props. As páginas controlam estado, carregamento, erros e submissões.
 
 ## Tecnologias utilizadas
 
@@ -56,6 +62,16 @@ Fluxo principal:
 | Fetch API | Requisições HTTP centralizadas em `services/api.js` |
 | Nginx | Servir o build em container Docker |
 
+## Telas de autenticação
+
+| Página | Responsabilidade |
+| --- | --- |
+| `Login` | Formulário de e-mail/senha, chama `AuthContext.login` |
+| `Signup` | Cadastro de conta; após sucesso, mostra tela pedindo para confirmar o e-mail |
+| `VerifyEmail` | Lê `?token=` da URL, confirma o e-mail e mostra sucesso/erro |
+| `ForgotPassword` | Pede o e-mail e solicita o link de redefinição |
+| `ResetPassword` | Lê `?token=` da URL e define a nova senha |
+
 ## Componentes do projeto
 
 | Componente | Responsabilidade |
@@ -67,6 +83,7 @@ Fluxo principal:
 | `Modal` | Estrutura reutilizável de modal |
 | `ConfirmDialog` | Confirmação para ações destrutivas |
 | `Toast` | Notificações temporárias no canto inferior central |
+| `RequireAuth` | Guard de rota — redireciona para `/login` quando não há sessão válida |
 
 ## Validações básicas do frontend
 
@@ -121,3 +138,17 @@ VITE_API_BASE=http://localhost:3001
 ```
 
 No Docker Compose, ela é enviada como argumento de build para apontar o frontend para a API local.
+Em produção (Vercel), é configurada como env var do projeto, apontando para a API no Render.
+
+## Deploy (Vercel)
+
+O React Router usa rotas client-side que não existem como arquivo físico (`/login`, `/cadastro`,
+etc.) — sem configuração extra, acessar uma delas diretamente (refresh, link do e-mail) retorna
+404. Resolvido por `vercel.json` na raiz do frontend:
+
+```json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
+
+Equivalente ao `try_files $uri $uri/ /index.html` do `nginx.conf` usado no Docker Compose — mesma
+necessidade, sintaxe diferente por provedor.

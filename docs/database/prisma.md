@@ -298,3 +298,65 @@ Abrir Prisma Studio:
 ```bash
 npx prisma studio
 ```
+
+## 8. Evolução do schema — autenticação multiusuário
+
+Com a chegada da feature de autenticação (spec `001-autenticacao-multiusuario`, ver
+`.claude/docs/specs/`), o schema ganhou três novos modelos e um ajuste em `Processos`:
+
+```prisma
+model User {
+  id                      Int                      @id @default(autoincrement())
+  email                   String                   @unique
+  passwordHash            String                   @map("password_hash")
+  nome                    String?
+  emailVerifiedAt         DateTime?                @map("email_verified_at")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  processos               Processos[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+
+  @@map("users")
+}
+
+model EmailVerificationToken {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique @map("token_hash")
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// PasswordResetToken tem exatamente o mesmo formato de EmailVerificationToken acima —
+// tabela separada de propósito, ver justificativa logo abaixo.
+```
+
+`Processos` ganhou `userId` obrigatório (FK para `User`, `onDelete: Cascade`) e a restrição de
+unicidade de `numeroProcesso` deixou de ser global — virou `@@unique([numeroProcesso, userId])`,
+porque duas contas diferentes podem cadastrar o mesmo número de processo (são casos de pessoas
+diferentes).
+
+**Duas tabelas de token, não uma com campo `type`**: um bug trocando o tipo (usar um token de
+reset de senha para confirmar e-mail, ou vice-versa) seria um bug de segurança real, não só uma
+inconsistência de dado — a pequena duplicação entre `EmailVerificationToken` e
+`PasswordResetToken` compra a garantia de que isso é estruturalmente impossível.
+
+**Token nunca em texto puro**: `tokenHash` guarda o SHA-256 do token enviado por e-mail — o valor
+puro nunca é persistido, só existe na URL do link enviado (ver `.claude/skills/auth-api/SKILL.md`).
+
+Migration aplicada: `20260807012427_adicionar_autenticacao_multiusuario`, gerada com
+`prisma migrate diff` (ambiente não-interativo) e aplicada com `prisma migrate deploy` — o passo a
+passo interativo padrão (`prisma migrate dev`) não funciona fora de um terminal TTY, ver
+`.claude/skills/prisma-database/SKILL.md`.
+
+Note também que o `generator client` deste projeto **não** usa mais `output` customizado (o
+schema atual em `backend/prisma/schema.prisma` usa o padrão do Prisma 7, gerado em
+`node_modules/@prisma/client`) — a seção 3 deste documento, escrita durante a modelagem inicial,
+descreve uma configuração (`output = "../src/generated/prisma"`) que já não reflete o schema
+atual.
