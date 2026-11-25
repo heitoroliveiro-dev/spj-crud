@@ -10,7 +10,7 @@ Preencha `.claude/docs/specs/NNN-slug/tasks.md` a partir de
 - Declara dependência explícita de outra tarefa quando existir (ex.: "depende da T2 — precisa do
   schema criado").
 - Referencia a skill aplicável (`express-module-dev`, `prisma-database`, `auth-api`,
-  `deploy-render-vercel-neon`).
+  `deploy-vps`).
 
 Agrupe por camada seguindo a direção de dependência do projeto: schema/migration (Prisma) →
 infrastructure (repositories/utils) → application (services) → routes/middleware → frontend →

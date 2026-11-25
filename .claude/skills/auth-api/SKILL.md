@@ -8,7 +8,8 @@ description: Autenticação multiusuário da API (implementação própria — b
 ## Regra 0 — Fonte da verdade
 Decisão registrada em ADR (`.claude/docs/architecture/adr/ADR-0002-autenticacao-jwt-bearer-em-memoria.md`):
 JWT Bearer em memória no frontend, não cookie — por causa do backend (Render) e frontend
-(Vercel) serem domínios diferentes (cross-site). Consultar documentação oficial de cada peça
+(Vercel) serem domínios diferentes (cross-site) na época. Desde a spec 002 (ADR-0004) os dois
+ficam no mesmo domínio na VPS; a decisão segue válida. Consultar documentação oficial de cada peça
 antes de implementar:
 - JWT: https://datatracker.ietf.org/doc/html/rfc7519 (spec) + doc de `jsonwebtoken`
 - Hashing: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

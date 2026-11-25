@@ -112,7 +112,7 @@ como tal).
 - `context/conventions/` — JavaScript, Express, Prisma, Git
 - `specs/` — specs, plans e tasks de cada feature (formato SDD)
 - `architecture/` — visão arquitetural + ADRs
-- `playbooks/deploy.md` — processo real de deploy (Neon + Render + Vercel)
+- `playbooks/deploy.md` — deploy na VPS em modo demonstração (`deploy/deploy.sh`, spec 002)
 - `security/security.md` — política de senha, JWT, rate limiting
 
 ## Documento de origem

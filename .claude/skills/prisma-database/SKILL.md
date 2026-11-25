@@ -1,9 +1,9 @@
 ---
 name: prisma-database
-description: Modelagem de dados e acesso ao banco via Prisma ORM (PostgreSQL/Neon). Use SEMPRE que a tarefa envolver schema.prisma, migration, índice, relação ou query.
+description: Modelagem de dados e acesso ao banco via Prisma ORM (PostgreSQL). Use SEMPRE que a tarefa envolver schema.prisma, migration, índice, relação ou query.
 ---
 
-# Banco de dados (Prisma + PostgreSQL/Neon)
+# Banco de dados (Prisma + PostgreSQL)
 
 ## Regra 0 — Fonte da verdade
 Consulte https://www.prisma.io/docs antes de assumir sintaxe/comportamento — confirmar a versão
@@ -29,7 +29,7 @@ instalada (Prisma 7, `@prisma/adapter-pg`, driver adapter em vez do engine biná
    (`prisma.$queryRaw\`SELECT ... WHERE id = ${id}\``), nunca concatenação de string.
 7. **Migration em produção**: `prisma migrate deploy` já roda automaticamente no `CMD` do
    `backend/Dockerfile` a cada deploy do Render — nunca rodar migration manualmente direto no
-   Neon fora desse fluxo, para manter o histórico de migrations como fonte da verdade.
+   produção fora desse fluxo, para manter o histórico de migrations como fonte da verdade.
 
 ## Checklist de conclusão (Definition of Done)
 - [ ] Migration gerada via `prisma migrate dev`, nunca editada à mão depois de aplicada

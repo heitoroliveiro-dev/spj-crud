@@ -22,8 +22,10 @@ Login e forgot-password nunca revelam se um e-mail existe ou não — mesma resp
 ambos os casos (credencial errada / e-mail inexistente).
 
 ## Segredos
-Nunca em código ou commit. Env vars no Render (`JWT_SECRET`, `BREVO_API_KEY`,
-`DATABASE_URL`) e na Vercel (`VITE_API_BASE`, público por natureza — não é segredo).
+Nunca em código ou commit. Em produção, `/opt/spj-crud/.env` na VPS (`chmod 600`, gerado lá:
+`JWT_SECRET`, `POSTGRES_PASSWORD`, `DEMO_EMAIL`, `DEMO_PASSWORD`). `VITE_API_BASE` e `VITE_DEMO_*`
+vão para o bundle e são públicos por natureza — a senha da demonstração é pública de propósito.
+Sem `BREVO_API_KEY` na demonstração (spec 002).
 
 ## Logs
 Nunca logar senha, token (JWT ou de verificação/reset) em texto puro.

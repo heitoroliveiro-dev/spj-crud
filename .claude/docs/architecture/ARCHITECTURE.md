@@ -3,23 +3,22 @@
 ## Visão geral
 
 ```
-Browser ── HTTPS ──> Vercel (React 19 + Vite, estático)
-                              │  fetch, JSON, CORS
-                              ▼
-                      Render (Express 5, Docker, free)
-                              │  Prisma 7 (@prisma/adapter-pg)
-                              ▼
-                      Neon (PostgreSQL serverless, free)
+Browser ── HTTPS ──> borda Caddy da VPS (spj.heitoroliveiro.dev)
+                         ├── /*      → spj-frontend (nginx, React 19 + Vite estático)
+                         └── /api/*  → spj-backend (Express 5, Docker)
+                                          │  Prisma 7 (@prisma/adapter-pg)
+                                          ▼
+                                       spj-db (PostgreSQL 16, só rede interna)
 ```
 
-Frontend e backend são publicados em domínios diferentes — não há proxy reverso unindo os dois.
-Toda comunicação passa por CORS explícito e, a partir da feature `001`, por JWT Bearer no header
-`Authorization` (nunca cookie — ver ADR-0002).
+Desde a spec 002 (ADR-0004) frontend e API ficam no mesmo domínio, atrás da borda Caddy da VPS, em
+modo demonstração. A autenticação continua JWT Bearer no header `Authorization` (nunca cookie — ver
+ADR-0002). Antes (ADR-0001, desligado): Vercel + Render + Neon, em domínios diferentes.
 
 ## Camadas do backend
 
 ```
-routes → controllers → services → repositories → Prisma → Neon
+routes → controllers → services → repositories → Prisma → PostgreSQL
 ```
 Direção de dependência: uma camada só chama a camada imediatamente abaixo. `controllers` nunca
 importam Prisma; `repositories` nunca lançam erro HTTP nem conhecem regra de negócio. Erros sobem

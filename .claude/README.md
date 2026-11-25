@@ -12,7 +12,7 @@ CLAUDE.md (na raiz do projeto)  # contexto lido automaticamente pelo Claude Code
 .claude/
   settings.json          # liga os hooks abaixo
   hooks/                 # protege .env, roda lint/checagem de sintaxe, checa segredos, lembrete de contexto
-  skills/                 # auth-api · express-module-dev · prisma-database · deploy-render-vercel-neon
+  skills/                 # auth-api · express-module-dev · prisma-database · deploy-vps
   commands/               # /specify /plan /tasks /implement /feature /adr
   docs/
     context/              # negocio.md, conventions/
