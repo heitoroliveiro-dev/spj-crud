@@ -4,7 +4,7 @@ O SPJ é uma aplicação full-stack para gestão de processos judiciais e seus a
 
 A aplicação permite cadastrar processos, consultar detalhes, registrar andamentos, editar informações e excluir registros com integridade entre processo e andamento. É **multiusuário**: cada pessoa cria sua própria conta (com confirmação de e-mail obrigatória) e só acessa os processos/andamentos que ela mesma criou.
 
-**Em produção**: [spj-crud.vercel.app](https://spj-crud.vercel.app) (frontend) · [spj-crud-backend.onrender.com](https://spj-crud-backend.onrender.com) (API) — hospedagem gratuita via Vercel + Render + Neon, ver seção [Deploy em produção](#deploy-em-produção).
+**Em produção (demonstração)**: [spj.heitoroliveiro.dev](https://spj.heitoroliveiro.dev) — conta de teste na tela de login, dados restaurados todo dia às 4h (spec 002, ADR-0004). Deploy: `deploy/deploy.sh`.
 
 ## Requisitos funcionais
 

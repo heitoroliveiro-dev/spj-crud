@@ -1,6 +1,6 @@
 # ADR-0001 — Hospedagem gratuita: Render (backend) + Vercel (frontend) + Neon (banco)
 
-- **Status**: aceita (retroativa — decisão já implementada antes da adoção formal de ADRs neste projeto)
+- **Status**: substituída pela ADR-0004 (2026-11-25). Antes: aceita (retroativa — decisão já implementada antes da adoção formal de ADRs neste projeto)
 - **Data**: 2026-08-06 · **Autores**: Heitor Oliveiro + Claude
 - **Spec/Plan relacionados**: nenhuma spec formal — decisão de infraestrutura anterior à feature `001`
 

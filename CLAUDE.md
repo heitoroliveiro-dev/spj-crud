@@ -18,8 +18,8 @@ Express/JavaScript puro/React).
    de um usuário específico passa por `middlewares/requireAuth.js` e usa `req.user.id` para
    escopar a consulta — nunca confiar em um `userId` vindo do corpo da requisição.
 4. **Nenhum segredo em código ou commit** (`DATABASE_URL`, `JWT_SECRET`, `BREVO_API_KEY`). Tudo
-   via variáveis de ambiente (`.env`, fora do Git) + env vars do provedor em produção (Render/
-   Vercel).
+   via variáveis de ambiente (`.env`, fora do Git); em produção, `/opt/spj-crud/.env` na VPS
+   (gerado lá, `chmod 600`).
 5. **Senha nunca em texto puro** em nenhum lugar (tela, log, banco, resposta de rede) — só hash
    (`bcryptjs`). Token de verificação de e-mail/reset de senha: gerado aleatório, guardado
    **hasheado** (SHA-256) no banco, nunca em texto puro.
@@ -32,12 +32,12 @@ Express/JavaScript puro/React).
 | Camada | Tecnologia |
 |---|---|
 | Backend | Node.js 22 + Express 5 |
-| Banco | PostgreSQL (Neon, serverless) via Prisma ORM 7 (`@prisma/adapter-pg`) |
+| Banco | PostgreSQL 16 via Prisma ORM 7 (`@prisma/adapter-pg`); em produção, container na VPS (ADR-0004) |
 | Frontend | React 19 + Vite + React Router DOM v7 + Tailwind CSS v4 |
 | Autenticação | Implementação própria — bcryptjs + JWT Bearer em memória (ver ADR-0002) |
 | E-mail transacional | Brevo (API HTTP — Render bloqueia SMTP no free tier, ver ADR-0003) |
-| Hospedagem | Render (backend, Docker, free) + Vercel (frontend, free) + Neon (banco, free) — ver ADR-0001 |
-| CI/CD | Deploy automático via push em `main` (GitHub → Render / GitHub → Vercel) |
+| Hospedagem | VPS Hostinger KVM 2 do Heitor, atrás da borda Caddy compartilhada, em `https://spj.heitoroliveiro.dev`, **modo demonstração** (spec 002, ADR-0004; substitui a ADR-0001) |
+| Deploy | `deploy/deploy.sh` (build local, imagens por SSH, reset diário às 04:00) |
 | Linguagem | JavaScript (CommonJS no backend, ESM no frontend) — sem TypeScript |
 
 Decisões e trade-offs completos em `.claude/docs/architecture/adr/`.

@@ -1,0 +1,17 @@
+# SPJ (spec 002, ADR-0004) na borda compartilhada da VPS. Copiado para /opt/edge/config/sites/
+# pelo deploy/deploy.sh. Hostname fixo: certificado normal, fora do on-demand do CigMenu.
+spj.heitoroliveiro.dev {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	handle /api/* {
+		reverse_proxy spj-api:3001
+	}
+	handle {
+		reverse_proxy spj-web:80
+	}
+}
