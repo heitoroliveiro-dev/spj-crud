@@ -4,7 +4,7 @@ O SPJ é uma aplicação full-stack para gestão de processos judiciais e seus a
 
 A aplicação permite cadastrar processos, consultar detalhes, registrar andamentos, editar informações e excluir registros com integridade entre processo e andamento. É **multiusuário**: cada pessoa cria sua própria conta (com confirmação de e-mail obrigatória) e só acessa os processos/andamentos que ela mesma criou.
 
-**Em produção**: [spj-crud.vercel.app](https://spj-crud.vercel.app) (frontend) · [spj-crud-backend.onrender.com](https://spj-crud-backend.onrender.com) (API) — hospedagem gratuita via Vercel + Render + Neon, ver seção [Deploy em produção](#deploy-em-produção).
+**Em produção (demonstração)**: [spj.heitoroliveiro.dev](https://spj.heitoroliveiro.dev) — conta de teste na tela de login, dados restaurados todo dia às 4h (spec 002, ADR-0004). Deploy: `deploy/deploy.sh`.
 
 ## Requisitos funcionais
 
@@ -44,7 +44,7 @@ A aplicação permite cadastrar processos, consultar detalhes, registrar andamen
 | RNF09 | Documentar execução, arquitetura e decisões principais |
 | RNF10 | Nunca armazenar senha ou token de verificação/reset em texto puro |
 | RNF11 | Limitar tentativas de signup/login/forgot-password por IP (rate limiting) |
-| RNF12 | Rodar em produção com hospedagem gratuita (Render + Vercel + Neon) |
+| RNF12 | Rodar em produção como demonstração pública na VPS do Heitor (desde a spec 002; antes, free tier Render + Vercel + Neon) |
 
 ## Regras de negócio implementadas
 
@@ -71,9 +71,9 @@ A aplicação permite cadastrar processos, consultar detalhes, registrar andamen
 | Backend | Node.js, Express, Prisma ORM, PostgreSQL driver `pg` |
 | Autenticação | bcryptjs (hash de senha), jsonwebtoken (JWT Bearer), express-rate-limit |
 | E-mail transacional | Brevo (API HTTP) |
-| Banco de dados | PostgreSQL 16 (Neon em produção) |
+| Banco de dados | PostgreSQL 16 (container na VPS em produção) |
 | Containerização | Docker, Docker Compose, Nginx |
-| Hospedagem (produção) | Render (backend), Vercel (frontend), Neon (banco) — todos free tier |
+| Hospedagem (produção) | VPS Hostinger KVM 2 + Docker, atrás da borda Caddy (ADR-0004) |
 | Documentação e fluxo | Markdown, Git, GitHub Projects, Spec-Driven Development (`.claude/`) |
 
 ## Pré-requisitos
@@ -305,21 +305,22 @@ Mais detalhes estão em [`frontend/README.md`](./frontend/README.md).
 
 ## Deploy em produção
 
-O SPJ roda em produção com hospedagem 100% gratuita, em três provedores especializados:
+Desde 2026-11-25 o SPJ roda em **modo demonstração** na VPS Hostinger KVM 2 do Heitor, atrás de uma
+borda Caddy compartilhada com outros projetos (spec 002, ADR-0004, que substitui a ADR-0001 —
+Render + Vercel + Neon, desligados).
 
-| Componente | Provedor | URL |
-| --- | --- | --- |
-| Frontend (React/Vite, estático) | Vercel | https://spj-crud.vercel.app |
-| Backend (Express, Docker) | Render | https://spj-crud-backend.onrender.com |
-| Banco (PostgreSQL serverless) | Neon | (connection string privada) |
+| Camada | Onde | Endereço |
+|---|---|---|
+| Frontend (React/Vite, nginx) | container `spj-frontend` | https://spj.heitoroliveiro.dev |
+| Backend (Express, Docker) | container `spj-backend` | https://spj.heitoroliveiro.dev/api |
+| Banco (PostgreSQL 16) | container `spj-db`, só na rede interna | — |
 
-Deploy automático: push em `main` no GitHub redeploya backend e frontend sozinhos. Processo
-completo, variáveis de ambiente de cada provedor e troubleshooting conhecido (cold start do
-Render, rewrite de SPA na Vercel) estão documentados em
-[`.claude/docs/playbooks/deploy.md`](./.claude/docs/playbooks/deploy.md).
-
-**Limitação conhecida do free tier**: o backend do Render "dorme" após ~15 min de inatividade —
-a primeira requisição depois disso pode levar até ~50s para responder.
+- **Conta de demonstração** na tela de login; cadastro e "esqueci minha senha" desligados
+  (`DEMO_MODE=true`, sem e-mail na VPS).
+- **Reset diário às 04:00** (timer systemd `spj-reset.timer`): dados apagados e recriados por
+  `backend/scripts/reset-demo.js`.
+- **Publicar:** `deploy/deploy.sh` (build local, imagens enviadas por SSH, `caddy validate` +
+  `reload`). Passo a passo e rollback em `.claude/docs/playbooks/deploy.md`.
 
 ## Metodologia de desenvolvimento
 
@@ -336,7 +337,7 @@ Etapas principais:
 7. Construção do frontend conectado à API.
 8. Evolução de UX com modais, confirmações, date picker e toasts.
 9. Containerização de banco, backend e frontend.
-10. Deploy em produção gratuito (Neon + Render + Vercel).
+10. Deploy em produção: primeiro gratuito (Neon + Render + Vercel), desde a spec 002 demonstração pública na VPS do Heitor.
 11. Adoção de Spec-Driven Development (SDD) para a evolução do projeto — toda funcionalidade não
     trivial passa por spec → plano → tarefas → implementação, documentado em `.claude/`. A feature
     de autenticação multiusuário foi a primeira construída inteiramente por esse fluxo, ver

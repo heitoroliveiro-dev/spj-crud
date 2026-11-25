@@ -138,17 +138,10 @@ VITE_API_BASE=http://localhost:3001
 ```
 
 No Docker Compose, ela é enviada como argumento de build para apontar o frontend para a API local.
-Em produção (Vercel), é configurada como env var do projeto, apontando para a API no Render.
+Em produção é passada como build arg pelo `deploy/deploy.sh` (`https://spj.heitoroliveiro.dev`); `VITE_DEMO_EMAIL` e `VITE_DEMO_PASSWORD` ligam o quadro da conta de demonstração no login.
 
-## Deploy (Vercel)
+## Deploy
 
-O React Router usa rotas client-side que não existem como arquivo físico (`/login`, `/cadastro`,
-etc.) — sem configuração extra, acessar uma delas diretamente (refresh, link do e-mail) retorna
-404. Resolvido por `vercel.json` na raiz do frontend:
+Imagem `nginx` (ver `Dockerfile` e `nginx.conf`, com fallback de SPA para `index.html`), publicada na
+VPS por `deploy/deploy.sh` (spec 002). O antigo `vercel.json` saiu com o desligamento do Vercel.
 
-```json
-{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
-```
-
-Equivalente ao `try_files $uri $uri/ /index.html` do `nginx.conf` usado no Docker Compose — mesma
-necessidade, sintaxe diferente por provedor.

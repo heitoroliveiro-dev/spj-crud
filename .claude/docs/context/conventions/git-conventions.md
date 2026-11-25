@@ -8,7 +8,7 @@
 - Trunk-based simplificado: `main` estável + branches curtas `feat/...`, `fix/...`, `chore/...`.
 - PRs pequenas (< ~400 linhas de diff); commits atômicos, um por tarefa de `tasks.md` quando
   fizer sentido.
-- Push em `main` dispara deploy automático (Render + Vercel) — cuidado extra antes de mergear
+- Deploy é manual (`deploy/deploy.sh`, spec 002): merge em `main` não publica nada sozinho
   algo que não foi testado localmente.
 
 ## Conventional Commits

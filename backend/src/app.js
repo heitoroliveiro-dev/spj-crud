@@ -8,6 +8,15 @@ const andamentoRoutes = require('./routes/andamentoRoutes');
 
 const app = express();
 
+/*
+ * Spec 002: atrás de proxy reverso (borda Caddy na VPS), o IP do visitante vem em X-Forwarded-For.
+ * TRUST_PROXY = número de proxies na frente (1 na VPS). Sem isso o limite de tentativas de login
+ * contaria todos os visitantes como um só IP. Sem a variável, nada muda.
+ */
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY));
+}
+
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   allowedHeaders: ['Content-Type', 'Authorization'],

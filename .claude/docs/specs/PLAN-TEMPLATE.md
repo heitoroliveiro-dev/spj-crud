@@ -17,7 +17,7 @@ Entidades/campos novos ou alterados (Prisma), migrations necessárias, índices.
 
 ### Integrações
 APIs externas consumidas, autenticação, idempotência. Ver `.claude/skills/auth-api/SKILL.md` ou
-`deploy-render-vercel-neon/SKILL.md` quando aplicável.
+`deploy-vps/SKILL.md` quando aplicável.
 
 ### Observabilidade
 Logs/métricas do que será entregue.
@@ -26,7 +26,7 @@ Logs/métricas do que será entregue.
 O que ganhamos, o que abrimos mão, dívida técnica assumida (se houver) e plano para ela.
 
 ## 3. Plano de implantação
-Passos, rollback, impacto em produção (Render/Vercel/Neon já estão no ar — considerar).
+Passos, rollback, impacto em produção (produção na VPS em modo demonstração — considerar, ver skill `deploy-vps`).
 
 ## 4. ADR relacionada
 Se esta decisão for arquiteturalmente relevante, link para

@@ -7,7 +7,7 @@ status `aprovada`. Se não existir ou ainda estiver `rascunho`, pare e peça par
 Passos:
 1. Releia `spec.md` e os critérios de aceite.
 2. Consulte as skills relevantes (`express-module-dev`, `prisma-database`, `auth-api`,
-   `deploy-render-vercel-neon` conforme o caso) e confirme comportamento na documentação oficial
+   `deploy-vps` conforme o caso) e confirme comportamento na documentação oficial
    antes de propor a solução técnica.
 3. Preencha `.claude/docs/specs/NNN-slug/plan.md` a partir de
    `.claude/docs/specs/PLAN-TEMPLATE.md`: camadas afetadas (`routes`/`controllers`/`services`/

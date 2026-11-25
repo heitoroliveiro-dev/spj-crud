@@ -1,0 +1,10 @@
+# Spec 002 — reset diário da demonstração do SPJ (instalado em /etc/systemd/system/).
+[Unit]
+Description=SPJ: restaura os dados da demonstração
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/spj-crud
+ExecStart=/usr/bin/docker compose exec -T backend node scripts/reset-demo.js
