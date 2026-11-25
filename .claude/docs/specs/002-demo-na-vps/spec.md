@@ -1,6 +1,6 @@
 # SPEC — SPJ em modo demonstração na VPS (spj.heitoroliveiro.dev)
 
-- **Pasta**: `002-demo-na-vps/` · **Status**: aprovada (2026-11-25, Heitor: opção "conta de
+- **Pasta**: `002-demo-na-vps/` · **Status**: entregue (2026-11-25; aprovada pelo Heitor: Heitor: opção "conta de
   demonstração", reset diário de madrugada, DNS criado) · **ADRs**: ADR-0004 (nova, substitui a
   ADR-0001)
 
@@ -36,12 +36,12 @@ conta de teste mostrada na própria tela de login, e os dados voltam ao estado i
 
 ## 4. Critérios de aceite
 
-- [ ] Login com a conta mostrada na tela funciona em produção.
-- [ ] `POST /api/auth/signup` e `POST /api/auth/forgot-password` → 403 com `DEMO_MODE=true`; sem
+- [x] Login com a conta mostrada na tela funciona em produção.
+- [x] `POST /api/auth/signup` e `POST /api/auth/forgot-password` → 403 com `DEMO_MODE=true`; sem
       `DEMO_MODE`, comportamento atual (testes existentes passam).
-- [ ] Links de cadastro e "esqueci minha senha" somem na demonstração; quadro da conta aparece.
-- [ ] Script de reset apaga tudo e recria a conta (e-mail verificado) e os processos fictícios;
+- [x] Links de cadastro e "esqueci minha senha" somem na demonstração; quadro da conta aparece.
+- [x] Script de reset apaga tudo e recria a conta (e-mail verificado) e os processos fictícios;
       rodando duas vezes seguidas dá o mesmo resultado.
-- [ ] Timer diário às 04:00 instalado na VPS.
-- [ ] Postgres sem porta publicada; containers com limite de memória e logs com rotação.
-- [ ] Outros sites da VPS respondendo igual antes e depois.
+- [x] Timer diário às 04:00 instalado na VPS.
+- [x] Postgres sem porta publicada; containers com limite de memória e logs com rotação.
+- [x] Outros sites da VPS respondendo igual antes e depois.
